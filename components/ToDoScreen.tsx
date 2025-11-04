@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable, Modal, TextInput, Button } from 'react-native';
-import { Plus, Circle, CheckCircle2, Flag } from 'lucide-react-native';
+import { CheckCircle2, Circle, Flag, Plus } from 'lucide-react-native';
+import React, { useEffect, useState } from 'react';
+import { Alert, Button, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
 const Card = ({ children, style }: { children: React.ReactNode, style?: any }) => (
   <View style={[styles.card, style]}>{children}</View>
@@ -25,19 +25,82 @@ interface FolderType {
   icon: string;
 }
 
-export default function ToDoScreen() {
-  const [activeFolder, setActiveFolder] = useState('all');
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-  const [tasks, setTasks] = useState<Task[]>([
-    { id: 1, title: 'Finish math homework', dueDate: 'Today', priority: 'high', completed: false, folderId: 'school' },
-    { id: 2, title: 'Review science notes', dueDate: 'Today', priority: 'medium', completed: false, folderId: 'school' },
-    { id: 3, title: 'Buy groceries', dueDate: 'Tomorrow', priority: 'low', completed: false, folderId: 'personal' },
-    { id: 4, title: 'Complete project proposal', dueDate: 'Nov 8', priority: 'high', completed: false, folderId: 'work' },
-    { id: 5, title: 'Call dentist', dueDate: 'This week', priority: 'medium', completed: false, folderId: 'personal' },
-    { id: 6, title: 'Prepare presentation', dueDate: 'Nov 5', priority: 'high', completed: false, folderId: 'work' },
-    { id: 7, title: 'Read chapter 5', dueDate: 'Tomorrow', priority: 'low', completed: true, folderId: 'school' },
-    { id: 8, title: 'Workout session', dueDate: 'Today', priority: 'medium', completed: true, folderId: 'health' },
-  ]);
+export default function ToDoScreen() {
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [activeFolder, setActiveFolder] = useState('all');
+  const [modalVisible, setModalVisible] = useState(false);
+  const [newTaskTitle, setNewTaskTitle] = useState('');
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [editModalVisible, setEditModalVisible] = useState(false);
+
+  useEffect(() => {
+    if (selectedTask) {
+      setNewTaskTitle(selectedTask.title);
+    }
+  }, [selectedTask]);
+
+  const handleAddTask = () => {
+    if (selectedTask) {
+      updateTask();
+    } else {
+      addTask();
+    }
+  };
+
+  const addTask = () => {
+    if (newTaskTitle.trim() === '') return;
+    const newTask: Task = {
+      id: Date.now(),
+      title: newTaskTitle,
+      dueDate: 'Today',
+      priority: 'medium',
+      completed: false,
+      folderId: activeFolder === 'all' ? 'personal' : activeFolder,
+    };
+    setTasks([...tasks, newTask]);
+    setNewTaskTitle('');
+    setModalVisible(false);
+  };
+
+  const updateTask = () => {
+    if (!selectedTask) return;
+    setTasks(tasks.map((task: Task) =>
+      task.id === selectedTask.id ? { ...task, title: newTaskTitle } : task
+    ));
+    setNewTaskTitle('');
+    setSelectedTask(null);
+    setModalVisible(false);
+  };
+
+  useEffect(() => {
+    loadTasks();
+  }, []);
+
+  useEffect(() => {
+    saveTasks();
+  }, [tasks]);
+
+  const loadTasks = async () => {
+    try {
+      const storedTasks = await AsyncStorage.getItem('tasks');
+      if (storedTasks !== null) {
+        setTasks(JSON.parse(storedTasks));
+      }
+    } catch (error) {
+      console.error('Failed to load tasks.', error);
+    }
+  };
+
+  const saveTasks = async () => {
+    try {
+      await AsyncStorage.setItem('tasks', JSON.stringify(tasks));
+    } catch (error) {
+      console.error('Failed to save tasks.', error);
+    }
+  };
+
 
   const folders: FolderType[] = [
     { id: 'all', name: 'All', icon: '📋' },
@@ -48,56 +111,98 @@ export default function ToDoScreen() {
   ];
 
   const toggleTask = (id: number) => {
-    setTasks(tasks.map(task =>
+    setTasks(tasks.map((task: Task) =>
       task.id === id ? { ...task, completed: !task.completed } : task
     ));
   };
 
-  const getTasksByFolder = (folderId: string) => {
-    if (folderId === 'all') return tasks;
-    return tasks.filter(task => task.folderId === folderId);
+  const deleteTask = (id: number) => {
+    Alert.alert("Delete Task", "Are you sure you want to delete this task?", [
+      { text: "Cancel", style: "cancel" },
+      { text: "OK", onPress: () => setTasks(tasks.filter((task: Task) => task.id !== id)) },
+    ]);
   };
 
-  const activeTasks = tasks.filter(task => !task.completed);
-  const completedTasks = tasks.filter(task => task.completed);
+  const getTasksByFolder = (folderId: string) => {
+    if (folderId === 'all') return tasks;
+    return tasks.filter((task: Task) => task.folderId === folderId);
+  };
+
+  const activeTasks = tasks.filter((task: Task) => !task.completed);
+  const completedTasks = tasks.filter((task: Task) => task.completed);
   const displayTasks = getTasksByFolder(activeFolder);
-  const displayActiveTasks = displayTasks.filter(task => !task.completed);
-  const displayCompletedTasks = displayTasks.filter(task => task.completed);
+  const displayActiveTasks = displayTasks.filter((task: Task) => !task.completed);
+  const displayCompletedTasks = displayTasks.filter((task: Task) => task.completed);
 
   const TaskItem = ({ task }: { task: Task }) => (
-    <Card style={styles.taskItemCard}>
-      <View style={styles.taskItemContainer}>
-        <Pressable onPress={() => toggleTask(task.id)} style={{ marginTop: 2 }}>
-          {task.completed ? <CheckCircle2 color="#16a34a" width={20} height={20} /> : <Circle color="#94a3b8" width={20} height={20} />}
-        </Pressable>
-        <View style={{ flex: 1 }}>
-          <Text style={[styles.taskTitle, task.completed && styles.completedTaskTitle]}>
-            {task.title}
-          </Text>
-          <View style={styles.taskMetaContainer}>
-            <Badge style={styles.priorityBadge}>
-              <Flag color="#f97316" width={12} height={12} style={{ marginRight: 4 }} />
-              <Text style={styles.priorityText}>{task.priority}</Text>
-            </Badge>
-            <Text style={styles.dueDateText}>{task.dueDate}</Text>
+    <Pressable onLongPress={() => {
+      setSelectedTask(task);
+      setEditModalVisible(true);
+    }}>
+      <Card style={styles.taskItemCard}>
+        <View style={styles.taskItemContainer}>
+          <Pressable onPress={() => toggleTask(task.id)} style={{ marginTop: 2 }}>
+            {task.completed ? <CheckCircle2 color="#16a34a" width={20} height={20} /> : <Circle color="#94a3b8" width={20} height={20} />}
+          </Pressable>
+          <View style={{ flex: 1 }}>
+            <Text style={[styles.taskTitle, task.completed && styles.completedTaskTitle]}>
+              {task.title}
+            </Text>
+            <View style={styles.taskMetaContainer}>
+              <Badge style={styles.priorityBadge}>
+                <Flag color="#f97316" width={12} height={12} style={{ marginRight: 4 }} />
+                <Text style={styles.priorityText}>{task.priority}</Text>
+              </Badge>
+              <Text style={styles.dueDateText}>{task.dueDate}</Text>
+            </View>
           </View>
         </View>
-      </View>
-    </Card>
+      </Card>
+    </Pressable>
   );
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-      {/* Header */}
-      <View style={styles.headerContainer}>
-        <View>
-          <Text style={styles.headerTitle}>To-Do List</Text>
-          <Text style={styles.headerSubtitle}>{activeTasks.length} tasks remaining</Text>
+    <View style={{ flex: 1 }}>
+      <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
+        <View style={styles.headerContainer}>
+          <View>
+            <Text style={styles.headerTitle}>To-Do List</Text>
+            <Text style={styles.headerSubtitle}>{activeTasks.length} tasks remaining</Text>
+          </View>
         </View>
-        <Pressable style={styles.addButton} onPress={() => setModalVisible(true)}>
-          <Plus color="white" width={20} height={20} />
-        </Pressable>
-      </View>
+
+        <Card style={styles.statsCard} children={undefined}>
+          {/* Stats content here */}
+        </Card>
+
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.folderTabsContainer}>
+          {folders.map(folder => (
+            <Pressable key={folder.id} onPress={() => setActiveFolder(folder.id)} style={[styles.folderTab, activeFolder === folder.id && styles.activeFolderTab]}>
+              <Text>{folder.icon}</Text>
+              <Text style={[styles.folderTabText, activeFolder === folder.id && styles.activeFolderTabText]}>{folder.name}</Text>
+            </Pressable>
+          ))}
+        </ScrollView>
+
+        <View style={{ marginTop: 16 }}>
+          {displayActiveTasks.length > 0 && (
+            <View style={{ marginBottom: 16 }}>
+              <Text style={styles.listTitle}>Active Tasks</Text>
+              {displayActiveTasks.map(task => <TaskItem key={task.id} task={task} />)}
+            </View>
+          )}
+          {displayCompletedTasks.length > 0 && (
+            <View>
+              <Text style={styles.listTitle}>Completed</Text>
+              {displayCompletedTasks.map(task => <TaskItem key={task.id} task={task} />)}
+            </View>
+          )}
+        </View>
+      </ScrollView>
+
+      <Pressable style={styles.fab} onPress={() => setModalVisible(true)}>
+        <Plus color="white" width={24} height={24} />
+      </Pressable>
 
       <Modal
         animationType="slide"
@@ -113,43 +218,32 @@ export default function ToDoScreen() {
               value={newTaskTitle}
               onChangeText={setNewTaskTitle}
             />
-            <Button title="Add Task" onPress={addTask} />
+            <Button title={selectedTask ? "Update Task" : "Add Task"} onPress={handleAddTask} />
           </View>
         </View>
       </Modal>
-
-      {/* Stats Card */}
-      <Card style={styles.statsCard} children={undefined}>
-        {/* Stats content here */}
-      </Card>
-
-      {/* Folder Tabs */}
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.folderTabsContainer}>
-        {folders.map(folder => (
-          <Pressable key={folder.id} onPress={() => setActiveFolder(folder.id)} style={[styles.folderTab, activeFolder === folder.id && styles.activeFolderTab]}>
-            <Text>{folder.icon}</Text>
-            <Text style={[styles.folderTabText, activeFolder === folder.id && styles.activeFolderTabText]}>{folder.name}</Text>
-          </Pressable>
-        ))}
-      </ScrollView>
-
-      {/* Task Lists */}
-      <View style={{ marginTop: 16 }}>
-        {displayActiveTasks.length > 0 && (
-          <View style={{ marginBottom: 16 }}>
-            <Text style={styles.listTitle}>Active Tasks</Text>
-            {displayActiveTasks.map(task => <TaskItem key={task.id} task={task} />)}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={editModalVisible}
+        onRequestClose={() => setEditModalVisible(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalView}>
+            <Button title="Edit" onPress={() => {
+              setEditModalVisible(false);
+              setModalVisible(true);
+            }} />
+            <Button title="Delete" onPress={() => {
+              if (selectedTask) {
+                deleteTask(selectedTask.id);
+              }
+              setEditModalVisible(false);
+            }} />
           </View>
-        )}
-        {displayCompletedTasks.length > 0 && (
-          <View>
-            <Text style={styles.listTitle}>Completed</Text>
-            {displayCompletedTasks.map(task => <TaskItem key={task.id} task={task} />)}
-          </View>
-        )}
-      </View>
-
-    </ScrollView>
+        </View>
+      </Modal>
+    </View>
   );
 }
 
@@ -180,4 +274,5 @@ const styles = StyleSheet.create({
   modalContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)' },
   modalView: { backgroundColor: 'white', borderRadius: 12, padding: 24, alignItems: 'center', width: '80%' },
   modalTextInput: { borderWidth: 1, borderColor: '#d1d5db', borderRadius: 8, padding: 12, marginBottom: 16, width: '100%' },
+  fab: { position: 'absolute', bottom: 24, right: 24, width: 56, height: 56, borderRadius: 28, backgroundColor: '#2563eb', justifyContent: 'center', alignItems: 'center', elevation: 8 },
 });
