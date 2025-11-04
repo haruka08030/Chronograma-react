@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable, Switch } from 'react-native';
 import { Bell, Calendar, Cloud, Palette, User, Shield, HelpCircle, ChevronRight, LogOut } from 'lucide-react-native';
 
@@ -21,6 +21,10 @@ interface SettingsSection {
 }
 
 export default function SettingsScreen() {
+  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+
+  const toggleNotifications = () => setNotificationsEnabled(previousState => !previousState);
+
   const settingsSections: SettingsSection[] = [
     {
       title: 'Account',
@@ -75,7 +79,7 @@ export default function SettingsScreen() {
                     <Text style={styles.settingLabel}>{item.label}</Text>
                     {item.value && <Text style={styles.settingValue}>{item.value}</Text>}
                   </View>
-                  {item.hasSwitch && <Switch value={item.enabled} />}
+                  {item.hasSwitch && <Switch value={notificationsEnabled} onValueChange={toggleNotifications} />}
                   {item.hasChevron && <ChevronRight color="#94a3b8" width={20} height={20} />}
                 </Pressable>
               );
