@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
 import { Sunrise, BookOpen, Dumbbell, Utensils, Moon, Code, Coffee } from 'lucide-react-native';
 
 const Card = ({ children, style }: { children: React.ReactNode, style?: any }) => (
@@ -22,12 +22,23 @@ interface Habit {
 export default function HabitsScreen() {
   const weekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
-  const habits: Habit[] = [
+  const [habits, setHabits] = useState<Habit[]>([
     { id: 1, name: 'Morning Routine', icon: Sunrise, time: '6:00 AM', color: { bg: '#f5f3ff', text: '#7c3aed' }, completion: [true, true, true, false, true, true, false] },
     { id: 2, name: 'Study Session', icon: BookOpen, time: '8:00 AM', color: { bg: '#eff6ff', text: '#2563eb' }, completion: [true, true, false, true, true, false, false] },
     { id: 3, name: 'Workout', icon: Dumbbell, time: '3:00 PM', color: { bg: '#ffe4e6', text: '#e11d48' }, completion: [true, false, true, true, true, false, false] },
     { id: 4, name: 'Healthy Meal', icon: Utensils, time: '12:00 PM', color: { bg: '#f0fdf4', text: '#16a34a' }, completion: [true, true, true, true, true, true, false] },
-  ];
+  ]);
+
+  const toggleHabitCompletion = (habitId: number, dayIndex: number) => {
+    setHabits(habits.map(habit => {
+      if (habit.id === habitId) {
+        const newCompletion = [...habit.completion];
+        newCompletion[dayIndex] = !newCompletion[dayIndex];
+        return { ...habit, completion: newCompletion };
+      }
+      return habit;
+    }));
+  };
 
   const calculateStreak = (completion: boolean[]) => {
     let streak = 0;
@@ -54,7 +65,7 @@ export default function HabitsScreen() {
       {/* Habits List */}
       <View style={{ marginTop: 16 }}>
         <Text style={styles.listTitle}>Your Habits</Text>
-        {habits.map((habit) => {
+        {habits.map((habit: Habit) => {
           const Icon = habit.icon;
           const streak = calculateStreak(habit.completion);
           return (
@@ -72,8 +83,10 @@ export default function HabitsScreen() {
                 </View>
               </View>
               <View style={styles.weeklyProgressContainer}>
-                {habit.completion.map((completed, index) => (
-                  <View key={index} style={[styles.progressDot, completed ? styles.completedDot : styles.incompleteDot]} />
+                {habit.completion.map((completed: boolean, index: number) => (
+                  <Pressable key={index} onPress={() => toggleHabitCompletion(habit.id, index)}>
+                    <View style={[styles.progressDot, completed ? styles.completedDot : styles.incompleteDot]} />
+                  </Pressable>
                 ))}
               </View>
             </Card>

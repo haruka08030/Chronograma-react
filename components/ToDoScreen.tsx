@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Pressable, Modal, TextInput, Button } from 'react-native';
 import { Plus, Circle, CheckCircle2, Flag } from 'lucide-react-native';
 
 const Card = ({ children, style }: { children: React.ReactNode, style?: any }) => (
@@ -75,7 +75,11 @@ export default function ToDoScreen() {
             {task.title}
           </Text>
           <View style={styles.taskMetaContainer}>
-            {/* Priority and other details here */}
+            <Badge style={styles.priorityBadge}>
+              <Flag color="#f97316" width={12} height={12} style={{ marginRight: 4 }} />
+              <Text style={styles.priorityText}>{task.priority}</Text>
+            </Badge>
+            <Text style={styles.dueDateText}>{task.dueDate}</Text>
           </View>
         </View>
       </View>
@@ -90,10 +94,29 @@ export default function ToDoScreen() {
           <Text style={styles.headerTitle}>To-Do List</Text>
           <Text style={styles.headerSubtitle}>{activeTasks.length} tasks remaining</Text>
         </View>
-        <Pressable style={styles.addButton}>
+        <Pressable style={styles.addButton} onPress={() => setModalVisible(true)}>
           <Plus color="white" width={20} height={20} />
         </Pressable>
       </View>
+
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalView}>
+            <TextInput
+              style={styles.modalTextInput}
+              placeholder="Task title"
+              value={newTaskTitle}
+              onChangeText={setNewTaskTitle}
+            />
+            <Button title="Add Task" onPress={addTask} />
+          </View>
+        </View>
+      </Modal>
 
       {/* Stats Card */}
       <Card style={styles.statsCard} children={undefined}>
@@ -149,6 +172,12 @@ const styles = StyleSheet.create({
   taskTitle: { fontSize: 16, color: '#1e293b' },
   completedTaskTitle: { textDecorationLine: 'line-through', color: '#94a3b8' },
   taskMetaContainer: { flexDirection: 'row', alignItems: 'center', marginTop: 8 },
+  priorityBadge: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff7ed', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6, marginRight: 8 },
+  priorityText: { color: '#f97316', fontSize: 12 },
+  dueDateText: { color: '#64748b', fontSize: 12 },
   card: { backgroundColor: 'white', borderRadius: 8, padding: 16, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.20, shadowRadius: 1.41, elevation: 2 },
   badge: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },
+  modalContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)' },
+  modalView: { backgroundColor: 'white', borderRadius: 12, padding: 24, alignItems: 'center', width: '80%' },
+  modalTextInput: { borderWidth: 1, borderColor: '#d1d5db', borderRadius: 8, padding: 12, marginBottom: 16, width: '100%' },
 });
