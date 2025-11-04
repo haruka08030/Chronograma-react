@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable, Modal, TextInput, Button, Switch, Alert } from 'react-native';
-import { Clock, Target, TrendingUp, Calendar, Plus } from 'lucide-react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Plus } from 'lucide-react-native';
+import React, { useEffect, useState } from 'react';
+import { Alert, Button, Modal, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 
 interface ScheduleItem {
   id: number;
@@ -16,7 +16,7 @@ interface ScheduleItem {
   unplanned?: boolean;
 }
 
-const timelineHours = Array.from({ length: 18 }, (_, i) => i + 6);
+const timelineHours = Array.from({ length: 24 }, (_, i) => i);
 
 const timeToMinutes = (time: string): number => {
   const [hours, minutes] = time.split(':').map(Number);
@@ -31,7 +31,7 @@ const durationToMinutes = (duration: string): number => {
   return hours * 60 + minutes;
 };
 
-const startMinutes = 6 * 60;
+const startMinutes = 0;
 
 const calculatePosition = (item: ScheduleItem) => {
   const itemMinutes = timeToMinutes(item.time);
@@ -51,11 +51,12 @@ export default function TodayScreen() {
   const [newScheduleTime, setNewScheduleTime] = useState('');
   const [newScheduleDuration, setNewScheduleDuration] = useState('');
   const [isActual, setIsActual] = useState(false);
+  const scrollViewRef = React.useRef<ScrollView>(null);
 
   const Card = ({ children, style }: { children: React.ReactNode, style?: any }) => (
     <View style={[styles.card, style]}>{children}</View>
   );
-  
+
   const Progress = ({ value }: { value: number }) => (
     <View style={styles.progressContainer}>
       <View style={[styles.progressBar, { width: `${value}%` }]} />
@@ -64,6 +65,10 @@ export default function TodayScreen() {
 
   useEffect(() => {
     loadSchedules();
+    const now = new Date();
+    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+    const y = ((currentMinutes - startMinutes) / 60) * 80;
+    scrollViewRef.current?.scrollTo({ y, animated: false });
   }, []);
 
   useEffect(() => {
@@ -151,6 +156,12 @@ export default function TodayScreen() {
         }
       },
     ]);
+  };
+
+  const calculateProgress = () => {
+    if (actualSchedule.length === 0) return 0;
+    const completedItems = actualSchedule.filter(item => item.completed).length;
+    return Math.round((completedItems / actualSchedule.length) * 100);
   };
 
   const today = new Date();
@@ -243,7 +254,7 @@ export default function TodayScreen() {
 
   return (
     <View style={{ flex: 1 }}>
-      <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
+      <ScrollView ref={scrollViewRef} style={styles.container} contentContainerStyle={styles.contentContainer}>
         <View style={styles.headerContainer}>
           <Text style={styles.headerTitle}>Chronograma</Text>
           <Text style={styles.headerDate}>{dateString}</Text>
@@ -254,7 +265,11 @@ export default function TodayScreen() {
         </View>
 
         <Card style={styles.progressCard}>
-          {/* Progress summary */}
+          <Text style={styles.progressTitle}>Today's Progress</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }}>
+            <Progress value={calculateProgress()} />
+            <Text style={styles.progressPercentage}>{calculateProgress()}%</Text>
+          </View>
         </Card>
 
         <View style={styles.tabsContainer}>
@@ -321,12 +336,14 @@ export default function TodayScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f8fafc' },
-  contentContainer: { padding: 16 },
+  contentContainer: { padding: 16, paddingBottom: 80 },
   headerContainer: { marginBottom: 16 },
   headerTitle: { fontSize: 24, fontWeight: 'bold', color: '#1e293b' },
   headerDate: { fontSize: 16, color: '#475569' },
   statsContainer: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 16 },
   progressCard: { padding: 16, borderRadius: 16, backgroundColor: '#f0f5ff', marginBottom: 16 },
+  progressTitle: { fontSize: 16, fontWeight: 'bold', color: '#1e293b' },
+  progressPercentage: { fontSize: 16, fontWeight: 'bold', color: '#1e293b', marginLeft: 8 },
   tabsContainer: { flexDirection: 'row', backgroundColor: '#e2e8f0', borderRadius: 12, padding: 4, marginBottom: 16 },
   tab: { flex: 1, paddingVertical: 8, borderRadius: 8 },
   activeTab: { backgroundColor: 'white' },
@@ -344,7 +361,7 @@ const styles = StyleSheet.create({
   card: { backgroundColor: 'white', borderRadius: 8, padding: 16, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.20, shadowRadius: 1.41, elevation: 2 },
   progressContainer: { height: 8, backgroundColor: '#e5e7eb', borderRadius: 4 },
   progressBar: { height: 8, backgroundColor: '#2563eb', borderRadius: 4 },
-  fab: { position: 'absolute', bottom: 24, right: 24, width: 56, height: 56, borderRadius: 28, backgroundColor: '#2563eb', justifyContent: 'center', alignItems: 'center', elevation: 8 },
+  fab: { position: 'absolute', bottom: 60, right: 24, width: 56, height: 56, borderRadius: 28, backgroundColor: '#2563eb', justifyContent: 'center', alignItems: 'center', elevation: 8 },
   modalContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)' },
   modalView: { backgroundColor: 'white', borderRadius: 12, padding: 24, alignItems: 'center', width: '80%' },
   modalTextInput: { borderWidth: 1, borderColor: '#d1d5db', borderRadius: 8, padding: 12, marginBottom: 16, width: '100%' },

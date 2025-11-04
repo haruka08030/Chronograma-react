@@ -32,12 +32,22 @@ export default function ToDoScreen() {
   const [activeFolder, setActiveFolder] = useState('all');
   const [modalVisible, setModalVisible] = useState(false);
   const [newTaskTitle, setNewTaskTitle] = useState('');
+  const [newDueDate, setNewDueDate] = useState('');
+  const [newPriority, setNewPriority] = useState<'high' | 'medium' | 'low'>('medium');
+  const [newFolder, setNewFolder] = useState('');
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-  const [editModalVisible, setEditModalVisible] = useState(false);
 
   useEffect(() => {
     if (selectedTask) {
       setNewTaskTitle(selectedTask.title);
+      setNewDueDate(selectedTask.dueDate);
+      setNewPriority(selectedTask.priority);
+      setNewFolder(selectedTask.folderId);
+    } else {
+      setNewTaskTitle('');
+      setNewDueDate('');
+      setNewPriority('medium');
+      setNewFolder(activeFolder === 'all' ? 'personal' : activeFolder);
     }
   }, [selectedTask]);
 
@@ -54,22 +64,20 @@ export default function ToDoScreen() {
     const newTask: Task = {
       id: Date.now(),
       title: newTaskTitle,
-      dueDate: 'Today',
-      priority: 'medium',
+      dueDate: newDueDate,
+      priority: newPriority,
       completed: false,
-      folderId: activeFolder === 'all' ? 'personal' : activeFolder,
+      folderId: newFolder,
     };
     setTasks([...tasks, newTask]);
-    setNewTaskTitle('');
     setModalVisible(false);
   };
 
   const updateTask = () => {
     if (!selectedTask) return;
     setTasks(tasks.map((task: Task) =>
-      task.id === selectedTask.id ? { ...task, title: newTaskTitle } : task
+      task.id === selectedTask.id ? { ...task, title: newTaskTitle, dueDate: newDueDate, priority: newPriority, folderId: newFolder } : task
     ));
-    setNewTaskTitle('');
     setSelectedTask(null);
     setModalVisible(false);
   };
@@ -137,7 +145,7 @@ export default function ToDoScreen() {
   const TaskItem = ({ task }: { task: Task }) => (
     <Pressable onLongPress={() => {
       setSelectedTask(task);
-      setEditModalVisible(true);
+      setModalVisible(true);
     }}>
       <Card style={styles.taskItemCard}>
         <View style={styles.taskItemContainer}>
@@ -200,7 +208,10 @@ export default function ToDoScreen() {
         </View>
       </ScrollView>
 
-      <Pressable style={styles.fab} onPress={() => setModalVisible(true)}>
+      <Pressable style={styles.fab} onPress={() => {
+        setSelectedTask(null);
+        setModalVisible(true);
+      }}>
         <Plus color="white" width={24} height={24} />
       </Pressable>
 
@@ -212,34 +223,44 @@ export default function ToDoScreen() {
       >
         <View style={styles.modalContainer}>
           <View style={styles.modalView}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>タスク追加</Text>
+              <Pressable onPress={() => setModalVisible(false)}>
+                <Text style={styles.closeButton}>✕</Text>
+              </Pressable>
+            </View>
+            <Text style={styles.inputLabel}>タスク名</Text>
             <TextInput
               style={styles.modalTextInput}
-              placeholder="Task title"
+              placeholder="例: プロジェクトを終わらせる"
               value={newTaskTitle}
               onChangeText={setNewTaskTitle}
             />
-            <Button title={selectedTask ? "Update Task" : "Add Task"} onPress={handleAddTask} />
-          </View>
-        </View>
-      </Modal>
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={editModalVisible}
-        onRequestClose={() => setEditModalVisible(false)}
-      >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalView}>
-            <Button title="Edit" onPress={() => {
-              setEditModalVisible(false);
-              setModalVisible(true);
-            }} />
-            <Button title="Delete" onPress={() => {
-              if (selectedTask) {
-                deleteTask(selectedTask.id);
-              }
-              setEditModalVisible(false);
-            }} />
+            <Text style={styles.inputLabel}>期限</Text>
+            <TextInput
+              style={styles.modalTextInput}
+              placeholder="例: 明日"
+              value={newDueDate}
+              onChangeText={setNewDueDate}
+            />
+            <Text style={styles.inputLabel}>優先度</Text>
+            <TextInput
+              style={styles.modalTextInput}
+              placeholder="例: high"
+              value={newPriority}
+              onChangeText={(text) => setNewPriority(text as 'high' | 'medium' | 'low')}
+            />
+            <Text style={styles.inputLabel}>フォルダ</Text>
+            <TextInput
+              style={styles.modalTextInput}
+              placeholder="例: work"
+              value={newFolder}
+              onChangeText={setNewFolder}
+            />
+            <Pressable style={styles.primaryButton} onPress={handleAddTask}>
+              <Text style={styles.primaryButtonText}>{selectedTask ? "タスクを更新" : "追加"}</Text>
+            </Pressable>
+            {selectedTask && <Button title="Delete Task" onPress={() => deleteTask(selectedTask.id)} color="red" />}
           </View>
         </View>
       </Modal>
@@ -249,11 +270,10 @@ export default function ToDoScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f8fafc' },
-  contentContainer: { padding: 16 },
+  contentContainer: { padding: 16, paddingBottom: 80 },
   headerContainer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
   headerTitle: { fontSize: 24, fontWeight: 'bold', color: '#1e293b' },
   headerSubtitle: { fontSize: 16, color: '#475569' },
-  addButton: { backgroundColor: '#2563eb', padding: 12, borderRadius: 999, },
   statsCard: { padding: 16, borderRadius: 16, backgroundColor: '#f0f5ff', marginBottom: 16 },
   folderTabsContainer: { marginBottom: 16 },
   folderTab: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 12, marginRight: 8, backgroundColor: 'white' },
@@ -272,7 +292,13 @@ const styles = StyleSheet.create({
   card: { backgroundColor: 'white', borderRadius: 8, padding: 16, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.20, shadowRadius: 1.41, elevation: 2 },
   badge: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },
   modalContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)' },
-  modalView: { backgroundColor: 'white', borderRadius: 12, padding: 24, alignItems: 'center', width: '80%' },
-  modalTextInput: { borderWidth: 1, borderColor: '#d1d5db', borderRadius: 8, padding: 12, marginBottom: 16, width: '100%' },
-  fab: { position: 'absolute', bottom: 24, right: 24, width: 56, height: 56, borderRadius: 28, backgroundColor: '#2563eb', justifyContent: 'center', alignItems: 'center', elevation: 8 },
+  modalView: { backgroundColor: 'white', borderRadius: 12, padding: 20, width: '90%', maxHeight: '80%' },
+  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
+  modalTitle: { fontSize: 20, fontWeight: 'bold', color: '#1e293b' },
+  closeButton: { fontSize: 24, color: '#64748b' },
+  inputLabel: { fontSize: 16, color: '#1e293b', marginBottom: 8, marginTop: 16 },
+  modalTextInput: { borderWidth: 1, borderColor: '#d1d5db', borderRadius: 8, padding: 12, width: '100%' },
+  primaryButton: { backgroundColor: '#1e293b', padding: 14, borderRadius: 8, marginTop: 20, width: '100%', alignItems: 'center' },
+  primaryButtonText: { color: 'white', fontSize: 16, fontWeight: 'bold' },
+  fab: { position: 'absolute', bottom: 60, right: 24, width: 56, height: 56, borderRadius: 28, backgroundColor: '#2563eb', justifyContent: 'center', alignItems: 'center', elevation: 8 },
 });
