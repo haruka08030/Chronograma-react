@@ -26,6 +26,8 @@ interface Habit {
 
   completion: boolean[];
 
+  history: boolean[];
+
 }
 
 
@@ -123,8 +125,14 @@ export default function HabitsScreen() {
         const saved = await AsyncStorage.getItem('habits');
 
         if (saved) {
-
-          setHabits(JSON.parse(saved));
+          const parsedHabits = JSON.parse(saved);
+          const updatedHabits = parsedHabits.map((habit: Habit) => {
+            if (!habit.history) {
+              return { ...habit, history: habit.completion };
+            }
+            return habit;
+          });
+          setHabits(updatedHabits);
 
         }
 
@@ -148,6 +156,8 @@ export default function HabitsScreen() {
 
               completion: [true, true, true, false, true, true, false],
 
+              history: [true, true, true, false, true, true, false],
+
             },
 
             {
@@ -163,6 +173,8 @@ export default function HabitsScreen() {
               color: { bg: '#eff6ff', text: '#2563eb' },
 
               completion: [true, true, false, true, true, false, false],
+
+              history: [true, true, false, true, true, false, false],
 
             },
 
@@ -180,6 +192,8 @@ export default function HabitsScreen() {
 
               completion: [true, false, true, true, true, false, false],
 
+              history: [true, false, true, true, true, false, false],
+
             },
 
             {
@@ -195,6 +209,8 @@ export default function HabitsScreen() {
               color: { bg: '#f0fdf4', text: '#22c55e' },
 
               completion: [true, true, true, true, true, true, false],
+
+              history: [true, true, true, true, true, true, false],
 
             },
 
@@ -212,6 +228,8 @@ export default function HabitsScreen() {
 
               completion: [true, true, true, false, false, false, false],
 
+              history: [true, true, true, false, false, false, false],
+
             },
 
             {
@@ -228,6 +246,8 @@ export default function HabitsScreen() {
 
               completion: [false, true, false, true, true, false, false],
 
+              history: [false, true, false, true, true, false, false],
+
             },
 
             {
@@ -243,6 +263,8 @@ export default function HabitsScreen() {
               color: { bg: '#eef2ff', text: '#4f46e5' },
 
               completion: [true, true, false, true, true, false, false],
+
+              history: [true, true, false, true, true, false, false],
 
             },
 
@@ -286,6 +308,7 @@ export default function HabitsScreen() {
       time: formData.time,
       color: formData.color,
       completion: editingHabit?.completion || [false, false, false, false, false, false, false],
+      history: editingHabit?.history || [],
     };
 
     if (editingHabit) {
@@ -318,19 +341,40 @@ export default function HabitsScreen() {
       if (habit.id === habitId) {
         const newCompletion = [...habit.completion];
         newCompletion[dayIndex] = !newCompletion[dayIndex];
-        return { ...habit, completion: newCompletion };
+        const newHistory = [...habit.history];
+        newHistory[newHistory.length - 7 + dayIndex] = newCompletion[dayIndex];
+        return { ...habit, completion: newCompletion, history: newHistory };
       }
       return habit;
     }));
   };
 
-  const calculateStreak = (completion: boolean[]) => {
+  const calculateStreak = (history: boolean[]) => {
     let streak = 0;
-    for (let i = completion.length - 1; i >= 0; i--) {
-      if (completion[i]) streak++;
+    for (let i = history.length - 1; i >= 0; i--) {
+      if (history[i]) streak++;
       else break;
     }
     return streak;
+  };
+
+  const calculateLongestStreak = (history: boolean[]) => {
+    let longestStreak = 0;
+    let currentStreak = 0;
+    for (let i = 0; i < history.length; i++) {
+      if (history[i]) {
+        currentStreak++;
+      } else {
+        if (currentStreak > longestStreak) {
+          longestStreak = currentStreak;
+        }
+        currentStreak = 0;
+      }
+    }
+    if (currentStreak > longestStreak) {
+      longestStreak = currentStreak;
+    }
+    return longestStreak;
   };
 
   const calculateCompletion = (completion: boolean[]) => {
@@ -406,7 +450,8 @@ export default function HabitsScreen() {
           <View style={styles.habitsGrid}>
             {habits.map((habit) => {
               const Icon = iconMap[habit.icon] || Dumbbell;
-              const streak = calculateStreak(habit.completion);
+              const streak = calculateStreak(habit.history);
+              const longestStreak = calculateLongestStreak(habit.history);
               const completionPercentage = calculateCompletion(habit.completion);
 
               return (
@@ -484,8 +529,8 @@ export default function HabitsScreen() {
               </View>
               <View style={styles.statDivider} />
               <View style={styles.statItem}>
-                <Text style={styles.statValue}>{Math.max(...habits.map(h => calculateStreak(h.completion)), 0)}</Text>
-                <Text style={styles.statLabel}>Best Streak</Text>
+                <Text style={styles.statValue}>{Math.max(...habits.map(h => calculateLongestStreak(h.history)), 0)}</Text>
+                <Text style={styles.statLabel}>Longest Streak</Text>
               </View>
             </View>
           </Card>
