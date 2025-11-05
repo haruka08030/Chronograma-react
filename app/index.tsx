@@ -11,7 +11,7 @@ export default function Index() {
   const [activeTab, setActiveTab] = useState('today');
 
   const tabs = [
-    { id: 'today', label: 'Today', icon: Home },
+    { id: 'today', label: 'Today', icon: Home, component: TodayScreen },
     { id: 'calendar', label: 'Calendar', icon: CalendarDays },
     { id: 'todo', label: 'To-Do', icon: CheckSquare },
     { id: 'habits', label: 'Habits', icon: TrendingUp },
