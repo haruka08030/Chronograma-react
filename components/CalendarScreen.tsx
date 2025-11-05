@@ -72,6 +72,19 @@ export default function CalendarScreen() {
     }
   };
 
+  const [activityMap, setActivityMap] = useState<Map<string, number>>(new Map());
+
+  useEffect(() => {
+    const newActivityMap = new Map<string, number>();
+    [...plannedSchedule, ...actualSchedule].forEach(item => {
+      const date = new Date(item.time);
+      const dateString = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+      const count = newActivityMap.get(dateString) || 0;
+      newActivityMap.set(dateString, count + 1);
+    });
+    setActivityMap(newActivityMap);
+  }, [plannedSchedule, actualSchedule]);
+
   const monthName = currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
   const selectedDateString = selectedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 
@@ -91,7 +104,6 @@ export default function CalendarScreen() {
   const nextMonth = () => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1));
 
   const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-  const activityDays = [2, 5, 8, 9, 12, 15, 16, 19, 22, 23, 26, 29];
   const today = new Date();
 
   const [filteredPlannedSchedule, setFilteredPlannedSchedule] = useState<ScheduleItem[]>([]);
@@ -101,16 +113,16 @@ export default function CalendarScreen() {
     const filteredPlanned = plannedSchedule.filter(item => {
       const itemDate = new Date(item.time);
       return itemDate.getDate() === selectedDate.getDate() &&
-             itemDate.getMonth() === selectedDate.getMonth() &&
-             itemDate.getFullYear() === selectedDate.getFullYear();
+        itemDate.getMonth() === selectedDate.getMonth() &&
+        itemDate.getFullYear() === selectedDate.getFullYear();
     });
     setFilteredPlannedSchedule(filteredPlanned);
 
     const filteredActual = actualSchedule.filter(item => {
       const itemDate = new Date(item.time);
       return itemDate.getDate() === selectedDate.getDate() &&
-             itemDate.getMonth() === selectedDate.getMonth() &&
-             itemDate.getFullYear() === selectedDate.getFullYear();
+        itemDate.getMonth() === selectedDate.getMonth() &&
+        itemDate.getFullYear() === selectedDate.getFullYear();
     });
     setFilteredActualSchedule(filteredActual);
   }, [selectedDate, plannedSchedule, actualSchedule]);
@@ -215,28 +227,44 @@ export default function CalendarScreen() {
           {Array.from({ length: daysInMonth }).map((_, index) => {
             const day = index + 1;
             const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
+            const dateString = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+            const activityCount = activityMap.get(dateString) || 0;
+
             const isToday = date.toDateString() === today.toDateString();
             const isSelected = date.toDateString() === selectedDate.toDateString();
-            const hasActivity = activityDays.includes(day);
+
+            const accessibilityLabel = `${date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}, ${activityCount} events`;
+
+            let activityStyle = {};
+            if (activityCount > 0) {
+              if (activityCount >= 3) {
+                activityStyle = styles.activityCellHigh;
+              } else {
+                activityStyle = styles.activityCellLow;
+              }
+            }
 
             return (
-              <Pressable
-                key={day}
-                onPress={() => setSelectedDate(date)}
-                style={[styles.dayCell, 
-                  isToday && styles.todayCell, 
-                  isSelected && styles.selectedCell,
-                  hasActivity && !isToday && !isSelected && styles.activityCell
-                ]}
-              >
-                <Text style={[
-                  styles.dayText,
-                  isToday && styles.todayText,
-                  isSelected && styles.selectedText,
-                  hasActivity && !isToday && !isSelected && styles.activityText
-                ]}>{day}</Text>
-                {hasActivity && !isToday && !isSelected && <View style={styles.activityDot} />}
-              </Pressable>
+              <View key={day} style={{ height: 50, width: '14.28%', justifyContent: 'center', alignItems: 'center' }}>
+                <Pressable
+                  key={day}
+                  onPress={() => setSelectedDate(date)}
+                  style={[
+                    styles.dayCell,
+                    isToday && styles.todayCell,
+                    isSelected && styles.selectedCell,
+                    !isToday && !isSelected && activityStyle,
+                  ]}
+                  accessibilityLabel={accessibilityLabel}
+                >
+                  <Text style={[
+                    styles.dayText,
+                    isToday && styles.todayText,
+                    isSelected && styles.selectedText,
+                  ]}>{day}</Text>
+                  {(isToday || isSelected) && <View style={[styles.activityDot, isToday ? styles.todayDot : styles.selectedDot]} />}
+                </Pressable>
+              </View>
             );
           })}
         </View>
@@ -274,16 +302,18 @@ const styles = StyleSheet.create({
   dayHeaders: { flexDirection: 'row', justifyContent: 'space-around', marginBottom: 8 },
   dayHeader: { width: '14.28%', alignItems: 'center' },
   dayHeaderText: { fontSize: 12, color: '#64748b' },
-  calendarGrid: { flexDirection: 'row', flexWrap: 'wrap' },
-  dayCell: { width: '14.28%', aspectRatio: 1, justifyContent: 'center', alignItems: 'center', borderRadius: 12 },
+  calendarGrid: { flexDirection: 'row', flexWrap: 'wrap', rowGap: 10 },
+  dayCell: { width: '12%', aspectRatio: 1, justifyContent: 'center', alignItems: 'center', borderRadius: 999 },
   dayText: { fontSize: 14, color: '#334155' },
   todayCell: { backgroundColor: '#2563eb' },
   todayText: { color: 'white' },
   selectedCell: { backgroundColor: '#7c3aed' },
   selectedText: { color: 'white' },
-  activityCell: { backgroundColor: '#eff6ff' },
-  activityText: { color: '#1e293b' },
-  activityDot: { width: 4, height: 4, borderRadius: 2, backgroundColor: '#2563eb', marginTop: 2 },
+  activityCellLow: { backgroundColor: '#e0f2fe' },
+  activityCellHigh: { backgroundColor: '#bae6fd' },
+  activityDot: { width: 4, height: 4, borderRadius: 2, marginTop: 2 },
+  todayDot: { backgroundColor: '#2563eb' },
+  selectedDot: { backgroundColor: '#7c3aed' },
   card: { backgroundColor: 'white', borderRadius: 8, padding: 16, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.20, shadowRadius: 1.41, elevation: 2 },
   tabsContainer: { flexDirection: 'row', backgroundColor: '#e2e8f0', borderRadius: 12, padding: 4, marginBottom: 16 },
   tab: { flex: 1, paddingVertical: 8, borderRadius: 8 },

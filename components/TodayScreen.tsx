@@ -193,7 +193,7 @@ export default function TodayScreen() {
                   setIsActual(false);
                   setModalVisible(true);
                 }}>
-                  <View style={[styles.scheduleItem, { top, top, height, backgroundColor: item.color.bg, borderColor: item.color.border }]}>
+                  <View style={[styles.scheduleItem, { top, height, backgroundColor: item.color.bg, borderColor: item.color.border }]}>
                     <Text style={styles.scheduleItemTitle}>{item.title}</Text>
                   </View>
                 </Pressable>
@@ -204,7 +204,7 @@ export default function TodayScreen() {
             {actualSchedule.map((item, index) => {
               const { top, height } = calculatePosition(item);
               return (
-                <Pressable key={index} onLongPress={() => {
+                <Pressable key={index} onPress={() => {
                   setSelectedSchedule(item);
                   setIsActual(true);
                   setModalVisible(true);
