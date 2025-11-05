@@ -385,7 +385,8 @@ export default function HabitsScreen() {
             </View>
             <View style={styles.weekDaysContainer}>
               {weekDays.map((day, index) => {
-                const isToday = index === 3; // Thursday is today
+                const today = new Date().getDay();
+                const isToday = today === 0 ? index === 6 : index === today - 1;
                 return (
                   <View
                     key={day}
