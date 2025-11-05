@@ -1,6 +1,7 @@
+import { Bell, ChevronRight, LogOut, Palette, Shield, User } from 'lucide-react-native';
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable, Switch } from 'react-native';
-import { Bell, Calendar, Cloud, Palette, User, Shield, HelpCircle, ChevronRight, LogOut } from 'lucide-react-native';
+import { Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
+import useLocalization from '../hooks/useLocalization';
 
 const Card = ({ children, style }: { children: React.ReactNode, style?: any }) => (
   <View style={[styles.card, style]}>{children}</View>
@@ -21,23 +22,24 @@ interface SettingsSection {
 }
 
 export default function SettingsScreen() {
+  const { t } = useLocalization();
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
 
   const toggleNotifications = () => setNotificationsEnabled(previousState => !previousState);
 
   const settingsSections: SettingsSection[] = [
     {
-      title: 'Account',
+      title: t('settings.account'),
       items: [
-        { icon: User, label: 'Profile', value: 'John Doe', hasChevron: true },
-        { icon: Shield, label: 'Privacy & Security', hasChevron: true },
+        { icon: User, label: t('settings.profile'), value: 'John Doe', hasChevron: true },
+        { icon: Shield, label: t('settings.privacy'), hasChevron: true },
       ],
     },
     {
-      title: 'Preferences',
+      title: t('settings.preferences'),
       items: [
-        { icon: Palette, label: 'Theme', value: 'Light', hasChevron: true },
-        { icon: Bell, label: 'Notifications', hasSwitch: true, enabled: true },
+        { icon: Palette, label: t('settings.theme'), value: t('settings.light'), hasChevron: true },
+        { icon: Bell, label: t('settings.notifications'), hasSwitch: true, enabled: true },
       ],
     },
   ];
@@ -46,8 +48,8 @@ export default function SettingsScreen() {
     <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
       {/* Header */}
       <View style={styles.headerContainer}>
-        <Text style={styles.headerTitle}>Settings</Text>
-        <Text style={styles.headerSubtitle}>Manage your preferences</Text>
+        <Text style={styles.headerTitle}>{t('settings.title')}</Text>
+        <Text style={styles.headerSubtitle}>{t('settings.subtitle')}</Text>
       </View>
 
       {/* Profile Card */}
@@ -91,31 +93,33 @@ export default function SettingsScreen() {
       {/* Logout Button */}
       <Pressable style={styles.logoutButton}>
         <LogOut color="#ef4444" width={20} height={20} />
-        <Text style={styles.logoutButtonText}>Log Out</Text>
+        <Text style={styles.logoutButtonText}>{t('settings.logout')}</Text>
       </Pressable>
 
     </ScrollView>
   );
 }
 
+import { colors } from '../theme';
+
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f8fafc' },
+  container: { flex: 1, backgroundColor: colors.background },
   contentContainer: { padding: 16 },
   headerContainer: { marginBottom: 16 },
-  headerTitle: { fontSize: 24, fontWeight: 'bold', color: '#1e293b' },
-  headerSubtitle: { fontSize: 16, color: '#475569' },
-  profileCard: { padding: 16, borderRadius: 16, backgroundColor: '#f0f5ff', marginBottom: 16 },
-  avatar: { width: 64, height: 64, borderRadius: 32, backgroundColor: '#2563eb', justifyContent: 'center', alignItems: 'center' },
+  headerTitle: { fontSize: 24, fontWeight: 'bold', color: colors.text },
+  headerSubtitle: { fontSize: 16, color: colors.textMuted },
+  profileCard: { padding: 16, borderRadius: 16, backgroundColor: colors.primaryLight, marginBottom: 16 },
+  avatar: { width: 64, height: 64, borderRadius: 32, backgroundColor: colors.primary, justifyContent: 'center', alignItems: 'center' },
   avatarText: { color: 'white', fontSize: 24 },
-  profileName: { fontSize: 18, fontWeight: 'bold', color: '#1e293b' },
-  profileEmail: { fontSize: 14, color: '#475569', marginTop: 4 },
-  sectionTitle: { fontSize: 18, fontWeight: 'bold', color: '#1e293b', marginBottom: 8, paddingHorizontal: 4 },
+  profileName: { fontSize: 18, fontWeight: 'bold', color: colors.text },
+  profileEmail: { fontSize: 14, color: colors.textMuted, marginTop: 4 },
+  sectionTitle: { fontSize: 18, fontWeight: 'bold', color: colors.text, marginBottom: 8, paddingHorizontal: 4 },
   settingsCard: { borderRadius: 16, backgroundColor: 'white', overflow: 'hidden' },
   settingItem: { flexDirection: 'row', alignItems: 'center', padding: 16, gap: 12 },
-  settingIconContainer: { width: 40, height: 40, borderRadius: 12, backgroundColor: '#f1f5f9', justifyContent: 'center', alignItems: 'center' },
-  settingLabel: { fontSize: 16, color: '#1e293b' },
-  settingValue: { fontSize: 14, color: '#64748b', marginTop: 2 },
-  logoutButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', padding: 16, borderRadius: 16, backgroundColor: 'white', borderWidth: 1, borderColor: '#e2e8f0', gap: 8, marginTop: 16 },
-  logoutButtonText: { color: '#ef4444', fontSize: 16 },
+  settingIconContainer: { width: 40, height: 40, borderRadius: 12, backgroundColor: colors.border, justifyContent: 'center', alignItems: 'center' },
+  settingLabel: { fontSize: 16, color: colors.text },
+  settingValue: { fontSize: 14, color: colors.textSubtle, marginTop: 2 },
+  logoutButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', padding: 16, borderRadius: 16, backgroundColor: 'white', borderWidth: 1, borderColor: colors.border, gap: 8, marginTop: 16 },
+  logoutButtonText: { color: colors.rose, fontSize: 16 },
   card: { backgroundColor: 'white', borderRadius: 8, padding: 16, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.20, shadowRadius: 1.41, elevation: 2 },
 });

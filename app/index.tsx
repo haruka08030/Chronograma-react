@@ -1,21 +1,24 @@
+import { CalendarDays, CheckSquare, Home, Settings, TrendingUp } from 'lucide-react-native';
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Pressable, SafeAreaView, Platform } from 'react-native';
-import { CalendarDays, CheckSquare, Settings, TrendingUp, Home } from 'lucide-react-native';
-import TodayScreen from '../components/TodayScreen';
-import CalendarScreen from '../components/CalendarScreen';
-import ToDoScreen from '../components/ToDoScreen';
-import HabitsScreen from '../components/HabitsScreen';
-import SettingsScreen from '../components/SettingsScreen';
+import { Platform, Pressable, SafeAreaView, StyleSheet, Text, View } from 'react-native';
+import useLocalization from '../components/hooks/useLocalization';
+import CalendarScreen from '../components/screens/CalendarScreen';
+import HabitsScreen from '../components/screens/HabitsScreen';
+import SettingsScreen from '../components/screens/SettingsScreen';
+import TodayScreen from '../components/screens/TodayScreen';
+import ToDoScreen from '../components/screens/ToDoScreen';
 
 export default function Index() {
   const [activeTab, setActiveTab] = useState('today');
 
+  const { t } = useLocalization();
+
   const tabs = [
-    { id: 'today', label: 'Today', icon: Home, component: TodayScreen },
-    { id: 'calendar', label: 'Calendar', icon: CalendarDays },
-    { id: 'todo', label: 'To-Do', icon: CheckSquare },
-    { id: 'habits', label: 'Habits', icon: TrendingUp },
-    { id: 'settings', label: 'Settings', icon: Settings },
+    { id: 'today', label: t('nav.today'), icon: Home, component: TodayScreen },
+    { id: 'calendar', label: t('nav.calendar'), icon: CalendarDays },
+    { id: 'todo', label: t('nav.todo'), icon: CheckSquare },
+    { id: 'habits', label: t('nav.habits'), icon: TrendingUp },
+    { id: 'settings', label: t('nav.settings'), icon: Settings },
   ];
 
   const renderScreen = () => {
@@ -63,10 +66,12 @@ export default function Index() {
   );
 }
 
+import { colors } from '../components/theme';
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8fafc',
+    backgroundColor: colors.background,
     paddingTop: Platform.OS === 'android' ? 25 : 0,
   },
   mainContent: {
@@ -79,7 +84,7 @@ const styles = StyleSheet.create({
     right: 0,
     backgroundColor: 'white',
     borderTopWidth: 1,
-    borderTopColor: '#e2e8f0',
+    borderTopColor: colors.border,
   },
   tabBar: {
     flexDirection: 'row',
@@ -96,14 +101,14 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   activeTab: {
-    backgroundColor: '#eff6ff',
+    backgroundColor: colors.primaryLight,
   },
   tabLabel: {
     fontSize: 12,
     marginTop: 4,
-    color: '#64748b',
+    color: colors.textSubtle,
   },
   activeLabel: {
-    color: '#2563eb',
+    color: colors.primary,
   },
 });

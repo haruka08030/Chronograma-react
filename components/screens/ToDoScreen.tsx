@@ -1,7 +1,11 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { CheckCircle2, Circle, Flag, Plus } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import { Alert, Button, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { z } from 'zod';
+import useLocalization from '../hooks/useLocalization';
+import { TaskSchema } from '../schemas';
+import { colors } from '../theme';
 
 const Card = ({ children, style }: { children: React.ReactNode, style?: any }) => (
   <View style={[styles.card, style]}>{children}</View>
@@ -27,6 +31,7 @@ interface FolderType {
 }
 
 export default function ToDoScreen() {
+  const { t } = useLocalization();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [activeFolder, setActiveFolder] = useState('all');
   const [modalVisible, setModalVisible] = useState(false);
@@ -96,7 +101,13 @@ export default function ToDoScreen() {
     try {
       const storedTasks = await AsyncStorage.getItem('tasks');
       if (storedTasks !== null) {
-        setTasks(JSON.parse(storedTasks));
+        const parsed = JSON.parse(storedTasks);
+        const validated = z.array(TaskSchema).safeParse(parsed);
+        if (validated.success) {
+          setTasks(validated.data);
+        } else {
+          console.error('Invalid task data:', validated.error);
+        }
       }
     } catch (error) {
       console.error('Failed to load tasks.', error);
@@ -113,11 +124,11 @@ export default function ToDoScreen() {
 
 
   const folders: FolderType[] = [
-    { id: 'all', name: 'All', icon: '📋' },
-    { id: 'school', name: 'School', icon: '📚' },
-    { id: 'work', name: 'Work', icon: '💼' },
-    { id: 'personal', name: 'Personal', icon: '🏠' },
-    { id: 'health', name: 'Health', icon: '💪' },
+    { id: 'all', name: t('todo.all'), icon: '📋' },
+    { id: 'school', name: t('todo.school'), icon: '📚' },
+    { id: 'work', name: t('todo.work'), icon: '💼' },
+    { id: 'personal', name: t('todo.personal'), icon: '🏠' },
+    { id: 'health', name: t('todo.health'), icon: '💪' },
   ];
 
   const toggleTask = (id: number) => {
@@ -176,8 +187,8 @@ export default function ToDoScreen() {
       <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
         <View style={styles.headerContainer}>
           <View>
-            <Text style={styles.headerTitle}>To-Do List</Text>
-            <Text style={styles.headerSubtitle}>{activeTasks.length} tasks remaining</Text>
+            <Text style={styles.headerTitle}>{t('todo.title')}</Text>
+            <Text style={styles.headerSubtitle}>{activeTasks.length} {t('todo.remaining')}</Text>
           </View>
         </View>
 
@@ -197,13 +208,13 @@ export default function ToDoScreen() {
         <View style={{ marginTop: 16 }}>
           {displayActiveTasks.length > 0 && (
             <View style={{ marginBottom: 16 }}>
-              <Text style={styles.listTitle}>Active Tasks</Text>
+              <Text style={styles.listTitle}>{t('todo.activeTasks')}</Text>
               {displayActiveTasks.map(task => <TaskItem key={task.id} task={task} />)}
             </View>
           )}
           {displayCompletedTasks.length > 0 && (
             <View>
-              <Text style={styles.listTitle}>Completed</Text>
+              <Text style={styles.listTitle}>{t('todo.completed')}</Text>
               {displayCompletedTasks.map(task => <TaskItem key={task.id} task={task} />)}
             </View>
           )}
@@ -226,33 +237,33 @@ export default function ToDoScreen() {
         <Pressable style={styles.modalContainer} onPress={() => setModalVisible(false)}>
           <Pressable style={styles.modalView} onPress={(e) => e.stopPropagation()}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>タスク追加</Text>
+              <Text style={styles.modalTitle}>{t('todo.addTask')}</Text>
               <Pressable onPress={() => setModalVisible(false)}>
                 <Text style={styles.closeButton}>✕</Text>
               </Pressable>
             </View>
-            <Text style={styles.inputLabel}>タスク名</Text>
+            <Text style={styles.inputLabel}>{t('todo.taskName')}</Text>
             <TextInput
               style={styles.modalTextInput}
               placeholder="例: プロジェクトを終わらせる"
               value={newTaskTitle}
               onChangeText={setNewTaskTitle}
             />
-            <Text style={styles.inputLabel}>期限</Text>
+            <Text style={styles.inputLabel}>{t('todo.dueDate')}</Text>
             <TextInput
               style={styles.modalTextInput}
               placeholder="例: 明日"
               value={newDueDate}
               onChangeText={setNewDueDate}
             />
-            <Text style={styles.inputLabel}>優先度</Text>
+            <Text style={styles.inputLabel}>{t('todo.priority')}</Text>
             <TextInput
               style={styles.modalTextInput}
               placeholder="例: high"
               value={newPriority}
               onChangeText={(text) => setNewPriority(text as 'high' | 'medium' | 'low')}
             />
-            <Text style={styles.inputLabel}>フォルダ</Text>
+            <Text style={styles.inputLabel}>{t('todo.folder')}</Text>
             <TextInput
               style={styles.modalTextInput}
               placeholder="例: work"
@@ -260,9 +271,9 @@ export default function ToDoScreen() {
               onChangeText={setNewFolder}
             />
             <Pressable style={styles.primaryButton} onPress={handleAddTask}>
-              <Text style={styles.primaryButtonText}>{selectedTask ? "タスクを更新" : "追加"}</Text>
+              <Text style={styles.primaryButtonText}>{selectedTask ? t('todo.updateTask') : t('todo.addTask')}</Text>
             </Pressable>
-            {selectedTask && <Button title="Delete Task" onPress={() => deleteTask(selectedTask.id)} color="red" />}
+            {selectedTask && <Button title={t('todo.deleteTask')} onPress={() => deleteTask(selectedTask.id)} color="red" />}
           </Pressable>
         </Pressable>
       </Modal>
@@ -271,36 +282,36 @@ export default function ToDoScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f8fafc' },
+  container: { flex: 1, backgroundColor: colors.background },
   contentContainer: { padding: 16, paddingBottom: 80 },
   headerContainer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
-  headerTitle: { fontSize: 24, fontWeight: 'bold', color: '#1e293b' },
-  headerSubtitle: { fontSize: 16, color: '#475569' },
-  statsCard: { padding: 16, borderRadius: 16, backgroundColor: '#f0f5ff', marginBottom: 16 },
+  headerTitle: { fontSize: 24, fontWeight: 'bold', color: colors.text },
+  headerSubtitle: { fontSize: 16, color: colors.textMuted },
+  statsCard: { padding: 16, borderRadius: 16, backgroundColor: colors.primaryLight, marginBottom: 16 },
   folderTabsContainer: { marginBottom: 16 },
   folderTab: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 12, marginRight: 8, backgroundColor: 'white' },
-  activeFolderTab: { backgroundColor: '#2563eb' },
-  folderTabText: { marginLeft: 8, color: '#334155' },
+  activeFolderTab: { backgroundColor: colors.primary },
+  folderTabText: { marginLeft: 8, color: colors.text },
   activeFolderTabText: { color: 'white' },
-  listTitle: { fontSize: 18, fontWeight: 'bold', color: '#1e293b', marginBottom: 8 },
+  listTitle: { fontSize: 18, fontWeight: 'bold', color: colors.text, marginBottom: 8 },
   taskItemCard: { padding: 12, borderRadius: 12, backgroundColor: 'white', marginBottom: 8 },
   taskItemContainer: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
-  taskTitle: { fontSize: 16, color: '#1e293b' },
-  completedTaskTitle: { textDecorationLine: 'line-through', color: '#94a3b8' },
+  taskTitle: { fontSize: 16, color: colors.text },
+  completedTaskTitle: { textDecorationLine: 'line-through', color: colors.textSubtle },
   taskMetaContainer: { flexDirection: 'row', alignItems: 'center', marginTop: 8 },
-  priorityBadge: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff7ed', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6, marginRight: 8 },
-  priorityText: { color: '#f97316', fontSize: 12 },
-  dueDateText: { color: '#64748b', fontSize: 12 },
+  priorityBadge: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.streakBadge, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6, marginRight: 8 },
+  priorityText: { color: colors.streak, fontSize: 12 },
+  dueDateText: { color: colors.textSubtle, fontSize: 12 },
   card: { backgroundColor: 'white', borderRadius: 8, padding: 16, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.20, shadowRadius: 1.41, elevation: 2 },
   badge: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },
   modalContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)' },
   modalView: { backgroundColor: 'white', borderRadius: 12, padding: 20, width: '90%', maxHeight: '80%' },
   modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
-  modalTitle: { fontSize: 20, fontWeight: 'bold', color: '#1e293b' },
-  closeButton: { fontSize: 24, color: '#64748b' },
-  inputLabel: { fontSize: 16, color: '#1e293b', marginBottom: 8, marginTop: 16 },
-  modalTextInput: { borderWidth: 1, borderColor: '#d1d5db', borderRadius: 8, padding: 12, width: '100%' },
-  primaryButton: { backgroundColor: '#1e293b', padding: 14, borderRadius: 8, marginTop: 20, width: '100%', alignItems: 'center' },
+  modalTitle: { fontSize: 20, fontWeight: 'bold', color: colors.text },
+  closeButton: { fontSize: 24, color: colors.textSubtle },
+  inputLabel: { fontSize: 16, color: colors.text, marginBottom: 8, marginTop: 16 },
+  modalTextInput: { borderWidth: 1, borderColor: colors.inputBorder, borderRadius: 8, padding: 12, width: '100%' },
+  primaryButton: { backgroundColor: colors.text, padding: 14, borderRadius: 8, marginTop: 20, width: '100%', alignItems: 'center' },
   primaryButtonText: { color: 'white', fontSize: 16, fontWeight: 'bold' },
-  fab: { position: 'absolute', bottom: 60, right: 24, width: 56, height: 56, borderRadius: 28, backgroundColor: '#2563eb', justifyContent: 'center', alignItems: 'center', elevation: 8 },
+  fab: { position: 'absolute', bottom: 60, right: 24, width: 56, height: 56, borderRadius: 28, backgroundColor: colors.primary, justifyContent: 'center', alignItems: 'center', elevation: 8 },
 });

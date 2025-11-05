@@ -1,8 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable, Modal, TextInput, Button, Alert } from 'react-native';
-import { Sunrise, BookOpen, Dumbbell, Utensils, Moon, Code, Coffee, Plus, Edit2, Trash2 } from 'lucide-react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Picker } from '@react-native-picker/picker';
+import { BookOpen, Code, Coffee, Dumbbell, Edit2, Moon, Plus, Sunrise, Trash2, Utensils } from 'lucide-react-native';
+import React, { useEffect, useState } from 'react';
+import { Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+
+import { z } from 'zod';
+import useLocalization from '../hooks/useLocalization';
+import { HabitSchema } from '../schemas';
 
 const Card = ({ children, style }: { children: React.ReactNode, style?: any }) => (
   <View style={[styles.card, style]}>{children}</View>
@@ -53,6 +57,7 @@ const iconMap: { [key: string]: React.FC<any> } = {
 
 
 export default function HabitsScreen() {
+  const { t } = useLocalization();
 
   const [habits, setHabits] = useState<Habit[]>([]);
 
@@ -78,39 +83,39 @@ export default function HabitsScreen() {
 
 
 
-    const colorOptions = [
+  const colorOptions = [
 
 
 
-      { label: 'Purple', bg: '#f5f3ff', text: '#7c3aed' },
+    { label: 'Purple', bg: '#f5f3ff', text: '#7c3aed' },
 
 
 
-      { label: 'Blue', bg: '#eff6ff', text: '#2563eb' },
+    { label: 'Blue', bg: '#eff6ff', text: '#2563eb' },
 
 
 
-      { label: 'Rose', bg: '#fef2f2', text: '#ef4444' },
+    { label: 'Rose', bg: '#fef2f2', text: '#ef4444' },
 
 
 
-      { label: 'Green', bg: '#f0fdf4', text: '#22c55e' },
+    { label: 'Green', bg: '#f0fdf4', text: '#22c55e' },
 
 
 
-      { label: 'Amber', bg: '#fefce8', text: '#f59e0b' },
+    { label: 'Amber', bg: '#fefce8', text: '#f59e0b' },
 
 
 
-      { label: 'Cyan', bg: '#ecfeff', text: '#06b6d4' },
+    { label: 'Cyan', bg: '#ecfeff', text: '#06b6d4' },
 
 
 
-      { label: 'Indigo', bg: '#eef2ff', text: '#4f46e5' },
+    { label: 'Indigo', bg: '#eef2ff', text: '#4f46e5' },
 
 
 
-    ];
+  ];
 
 
 
@@ -125,15 +130,13 @@ export default function HabitsScreen() {
         const saved = await AsyncStorage.getItem('habits');
 
         if (saved) {
-          const parsedHabits = JSON.parse(saved);
-          const updatedHabits = parsedHabits.map((habit: Habit) => {
-            if (!habit.history) {
-              return { ...habit, history: habit.completion };
-            }
-            return habit;
-          });
-          setHabits(updatedHabits);
-
+          const parsed = JSON.parse(saved);
+          const validated = z.array(HabitSchema).safeParse(parsed);
+          if (validated.success) {
+            setHabits(validated.data);
+          } else {
+            console.error('Invalid habit data:', validated.error);
+          }
         }
 
         else {
@@ -410,8 +413,8 @@ export default function HabitsScreen() {
         {/* Header */}
         <View style={styles.headerContainer}>
           <View style={styles.headerTextContainer}>
-            <Text style={styles.headerTitle}>Habits</Text>
-            <Text style={styles.headerSubtitle}>Build consistency, track progress</Text>
+            <Text style={styles.headerTitle}>{t('habits.title')}</Text>
+            <Text style={styles.headerSubtitle}>{t('habits.subtitle')}</Text>
           </View>
           <Pressable onPress={() => setIsAddDialogOpen(true)} style={styles.addButton}>
             <Plus color="white" width={24} height={24} />
@@ -422,9 +425,9 @@ export default function HabitsScreen() {
         <Card style={styles.weeklyOverviewCard}>
           <View style={styles.weeklyOverviewContent}>
             <View style={styles.weeklyOverviewHeader}>
-              <Text style={styles.weeklyOverviewTitle}>This Week</Text>
+              <Text style={styles.weeklyOverviewTitle}>{t('habits.thisWeek')}</Text>
               <Badge style={styles.weeklyOverviewBadge}>
-                <Text style={styles.weeklyOverviewBadgeText}>{calculateWeeklyRate()}% Complete</Text>
+                <Text style={styles.weeklyOverviewBadgeText}>{calculateWeeklyRate()}{t('habits.complete')}</Text>
               </Badge>
             </View>
             <View style={styles.weekDaysContainer}>
@@ -446,7 +449,7 @@ export default function HabitsScreen() {
 
         {/* Habits List */}
         <View style={styles.habitsListContainer}>
-          <Text style={styles.listTitle}>Your Habits</Text>
+          <Text style={styles.listTitle}>{t('habits.yourHabits')}</Text>
           <View style={styles.habitsGrid}>
             {habits.map((habit) => {
               const Icon = iconMap[habit.icon] || Dumbbell;
@@ -469,7 +472,7 @@ export default function HabitsScreen() {
                         <Text style={styles.habitTime}>{habit.time}</Text>
                         <View style={styles.habitStatsContainer}>
                           <Badge style={styles.streakBadge}>
-                            <Text style={styles.streakText}>🔥 {streak} day streak</Text>
+                            <Text style={styles.streakText}>🔥 {streak} {t('habits.dayStreak')}</Text>
                           </Badge>
                           <Text style={styles.completionText}>{completionPercentage}%</Text>
                         </View>
@@ -510,7 +513,7 @@ export default function HabitsScreen() {
         {/* Empty State */}
         {habits.length === 0 && (
           <View style={styles.emptyStateContainer}>
-            <Text style={styles.emptyStateText}>習慣を追加して、進捗を追跡しましょう</Text>
+            <Text style={styles.emptyStateText}>{t('habits.addHabit')}</Text>
           </View>
         )}
 
@@ -520,17 +523,17 @@ export default function HabitsScreen() {
             <View style={styles.statsContent}>
               <View style={styles.statItem}>
                 <Text style={styles.statValue}>{habits.length}</Text>
-                <Text style={styles.statLabel}>Active Habits</Text>
+                <Text style={styles.statLabel}>{t('habits.activeHabits')}</Text>
               </View>
               <View style={styles.statDivider} />
               <View style={styles.statItem}>
                 <Text style={styles.statValue}>{calculateWeeklyRate()}%</Text>
-                <Text style={styles.statLabel}>Weekly Rate</Text>
+                <Text style={styles.statLabel}>{t('habits.weeklyRate')}</Text>
               </View>
               <View style={styles.statDivider} />
               <View style={styles.statItem}>
                 <Text style={styles.statValue}>{Math.max(...habits.map(h => calculateLongestStreak(h.history)), 0)}</Text>
-                <Text style={styles.statLabel}>Longest Streak</Text>
+                <Text style={styles.statLabel}>{t('habits.longestStreak')}</Text>
               </View>
             </View>
           </Card>
@@ -546,13 +549,13 @@ export default function HabitsScreen() {
         <Pressable style={styles.modalContainer} onPress={() => setIsAddDialogOpen(false)}>
           <Pressable style={styles.modalContent} onPress={(e) => e.stopPropagation()}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>{editingHabit ? '習慣編集' : '習慣追加'}</Text>
+              <Text style={styles.modalTitle}>{editingHabit ? t('habits.editHabit') : t('habits.addHabitTitle')}</Text>
               <Pressable onPress={() => setIsAddDialogOpen(false)}>
                 <Text style={styles.closeButton}>✕</Text>
               </Pressable>
             </View>
             <View style={styles.formGroup}>
-              <Text style={styles.label}>習慣名</Text>
+              <Text style={styles.label}>{t('habits.habitName')}</Text>
               <TextInput
                 style={styles.input}
                 placeholder="例: ランニング"
@@ -561,7 +564,7 @@ export default function HabitsScreen() {
               />
             </View>
             <View style={styles.formGroup}>
-              <Text style={styles.label}>時刻</Text>
+              <Text style={styles.label}>{t('habits.time')}</Text>
               <TextInput
                 style={styles.input}
                 placeholder="HH:MM AM/PM"
@@ -570,7 +573,7 @@ export default function HabitsScreen() {
               />
             </View>
             <View style={styles.formGroup}>
-              <Text style={styles.label}>アイコン</Text>
+              <Text style={styles.label}>{t('habits.icon')}</Text>
               <View style={styles.selectContainer}>
                 <Picker
                   selectedValue={formData.icon}
@@ -602,11 +605,11 @@ export default function HabitsScreen() {
               </View>
             </View>
             <Pressable onPress={handleAddHabit} style={styles.primaryButton}>
-              <Text style={styles.primaryButtonText}>{editingHabit ? '更新' : '追加'}</Text>
+              <Text style={styles.primaryButtonText}>{editingHabit ? t('habits.update') : t('habits.add')}</Text>
             </Pressable>
             {editingHabit && (
               <Pressable onPress={() => handleDelete(editingHabit.id)} style={[styles.primaryButton, styles.deleteButton]}>
-                <Text style={styles.primaryButtonText}>削除</Text>
+                <Text style={styles.primaryButtonText}>{t('habits.delete')}</Text>
               </Pressable>
             )}
           </Pressable>
@@ -616,84 +619,86 @@ export default function HabitsScreen() {
   );
 }
 
+import { colors } from '../theme';
+
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f8fafc' },
+  container: { flex: 1, backgroundColor: colors.background },
   contentContainer: { padding: 16, paddingBottom: 80 },
 
   // Header
   headerContainer: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 },
   headerTextContainer: {},
-  headerTitle: { fontSize: 24, fontWeight: 'bold', color: '#1e293b' },
-  headerSubtitle: { fontSize: 16, color: '#475569' },
-  addButton: { backgroundColor: '#2563eb', padding: 12, borderRadius: 999, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.25, shadowRadius: 3.84, elevation: 5 },
+  headerTitle: { fontSize: 24, fontWeight: 'bold', color: colors.text },
+  headerSubtitle: { fontSize: 16, color: colors.textMuted },
+  addButton: { backgroundColor: colors.primary, padding: 12, borderRadius: 999, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.25, shadowRadius: 3.84, elevation: 5 },
 
   // Weekly Overview
-  weeklyOverviewCard: { padding: 16, borderRadius: 16, backgroundColor: '#f0f5ff', marginBottom: 16, borderColor: '#bfdbfe', borderWidth: 1 },
+  weeklyOverviewCard: { padding: 16, borderRadius: 16, backgroundColor: colors.primaryLight, marginBottom: 16, borderColor: colors.primaryBorder, borderWidth: 1 },
   weeklyOverviewContent: {},
   weeklyOverviewHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
-  weeklyOverviewTitle: { fontSize: 16, color: '#1e293b' },
-  weeklyOverviewBadge: { backgroundColor: '#2563eb', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 4 },
+  weeklyOverviewTitle: { fontSize: 16, color: colors.text },
+  weeklyOverviewBadge: { backgroundColor: colors.primary, borderRadius: 8, paddingHorizontal: 8, paddingVertical: 4 },
   weeklyOverviewBadgeText: { color: 'white', fontSize: 12 },
   weekDaysContainer: { flexDirection: 'row', justifyContent: 'space-between', gap: 8 },
   weekDayItem: { flex: 1, paddingVertical: 8, borderRadius: 8, alignItems: 'center' },
-  todayWeekDayItem: { backgroundColor: '#2563eb' },
+  todayWeekDayItem: { backgroundColor: colors.primary },
   normalWeekDayItem: { backgroundColor: 'white' },
-  weekDayText: { fontSize: 12, color: '#475569' },
+  weekDayText: { fontSize: 12, color: colors.textMuted },
 
   // Habits List
   habitsListContainer: { marginBottom: 16 },
-  listTitle: { fontSize: 18, fontWeight: 'bold', color: '#1e293b', marginBottom: 8 },
+  listTitle: { fontSize: 18, fontWeight: 'bold', color: colors.text, marginBottom: 8 },
   habitsGrid: { gap: 12 },
-  habitItemCard: { padding: 16, borderRadius: 12, backgroundColor: 'white', borderColor: '#e2e8f0', borderWidth: 1, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 2 },
+  habitItemCard: { padding: 16, borderRadius: 12, backgroundColor: 'white', borderColor: colors.border, borderWidth: 1, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 2 },
   habitItemContent: {},
   habitItemHeader: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, marginBottom: 12 },
   habitIconBg: { width: 48, height: 48, borderRadius: 12, justifyContent: 'center', alignItems: 'center', flexShrink: 0 },
   habitTextContainer: { flex: 1, minWidth: 0 },
-  habitName: { fontSize: 16, color: '#1e293b' },
-  habitTime: { fontSize: 12, color: '#475569', marginTop: 4 },
+  habitName: { fontSize: 16, color: colors.text },
+  habitTime: { fontSize: 12, color: colors.textMuted, marginTop: 4 },
   habitStatsContainer: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 8 },
-  streakBadge: { backgroundColor: '#fff7ed', borderRadius: 6, paddingHorizontal: 8, paddingVertical: 4, borderColor: '#fed7aa', borderWidth: 1 },
-  streakText: { color: '#f97316', fontSize: 12 },
-  completionText: { fontSize: 12, color: '#64748b' },
+  streakBadge: { backgroundColor: colors.streakBadge, borderRadius: 6, paddingHorizontal: 8, paddingVertical: 4, borderColor: colors.streakBorder, borderWidth: 1 },
+  streakText: { color: colors.streak, fontSize: 12 },
+  completionText: { fontSize: 12, color: colors.textSubtle },
   habitActions: { flexDirection: 'row', gap: 4, opacity: 0 }, // opacity will be handled by animation if needed
   actionButton: { padding: 4, borderRadius: 4 },
 
   // Weekly Progress Dots
   weeklyProgressContainer: { flexDirection: 'row', justifyContent: 'space-between', gap: 6, marginTop: 12 },
   progressSquare: { flex: 1, aspectRatio: 1, borderRadius: 6 },
-  completedSquare: { backgroundColor: '#6ee7b7' },
-  incompleteSquare: { backgroundColor: '#e2e8f0' },
+  completedSquare: { backgroundColor: colors.completed },
+  incompleteSquare: { backgroundColor: colors.border },
 
   // Empty State
   emptyStateContainer: { textAlign: 'center', paddingVertical: 48 },
-  emptyStateText: { fontSize: 16, color: '#94a3b8', textAlign: 'center' },
+  emptyStateText: { fontSize: 16, color: colors.textSubtle, textAlign: 'center' },
 
   // Stats Card
-  statsCard: { padding: 16, borderRadius: 16, backgroundColor: '#ecfdf5', borderColor: '#a7f3d0', borderWidth: 1, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 2 },
+  statsCard: { padding: 16, borderRadius: 16, backgroundColor: colors.statsCard, borderColor: colors.statsCardBorder, borderWidth: 1, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 2 },
   statsContent: { flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center' },
   statItem: { alignItems: 'center' },
-  statValue: { fontSize: 16, color: '#1e293b', fontWeight: 'bold' },
-  statLabel: { fontSize: 12, color: '#475569' },
-  statDivider: { width: 1, height: 32, backgroundColor: '#e2e8f0' },
+  statValue: { fontSize: 16, color: colors.text, fontWeight: 'bold' },
+  statLabel: { fontSize: 12, color: colors.textMuted },
+  statDivider: { width: 1, height: 32, backgroundColor: colors.border },
 
   // Modal
   modalContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)' },
   modalContent: { backgroundColor: 'white', borderRadius: 12, padding: 20, width: '90%', maxHeight: '80%' },
   modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
-  modalTitle: { fontSize: 20, fontWeight: 'bold', color: '#1e293b' },
-  closeButton: { fontSize: 24, color: '#64748b' },
+  modalTitle: { fontSize: 20, fontWeight: 'bold', color: colors.text },
+  closeButton: { fontSize: 24, color: colors.textSubtle },
 
   // Form
   formGroup: { marginBottom: 16 },
-  label: { fontSize: 14, color: '#1e293b', marginBottom: 8 },
-  input: { borderWidth: 1, borderColor: '#d1d5db', borderRadius: 8, padding: 12, width: '100%', fontSize: 16, color: '#1e293b' },
-  selectContainer: { borderWidth: 1, borderColor: '#d1d5db', borderRadius: 8, width: '100%' },
+  label: { fontSize: 14, color: colors.text, marginBottom: 8 },
+  input: { borderWidth: 1, borderColor: colors.inputBorder, borderRadius: 8, padding: 12, width: '100%', fontSize: 16, color: colors.text },
+  selectContainer: { borderWidth: 1, borderColor: colors.inputBorder, borderRadius: 8, width: '100%' },
   picker: { width: '100%', height: 50 },
 
   // Buttons
-  primaryButton: { backgroundColor: '#2563eb', padding: 14, borderRadius: 8, marginTop: 20, width: '100%', alignItems: 'center' },
+  primaryButton: { backgroundColor: colors.primary, padding: 14, borderRadius: 8, marginTop: 20, width: '100%', alignItems: 'center' },
   primaryButtonText: { color: 'white', fontSize: 16, fontWeight: 'bold' },
-  deleteButton: { backgroundColor: '#ef4444', marginTop: 10 },
+  deleteButton: { backgroundColor: colors.rose, marginTop: 10 },
   card: { backgroundColor: 'white', borderRadius: 8, padding: 16, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.20, shadowRadius: 1.41, elevation: 2 },
   badge: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },
 });

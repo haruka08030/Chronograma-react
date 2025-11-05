@@ -3,11 +3,17 @@ import { Plus } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import { Alert, Button, Modal, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 
+import { z } from 'zod';
+import useLocalization from '../hooks/useLocalization';
+import { ScheduleItemSchema } from '../schemas';
+import { colors } from '../theme';
+
 interface ScheduleItem {
   id: number;
-  time: string;
+  dateISO: string;
+  startTime: string;
+  durationMin: number;
   title: string;
-  duration: string;
   type: string;
   color: { bg: string; border: string };
   delayed?: boolean;
@@ -18,37 +24,35 @@ interface ScheduleItem {
 
 const timelineHours = Array.from({ length: 24 }, (_, i) => i);
 
-const timeToMinutes = (time: string): number => {
-  const [hours, minutes] = time.split(':').map(Number);
+const timeToMinutes = (startTime: string): number => {
+  const [hours, minutes] = startTime.split(':').map(Number);
   return hours * 60 + minutes;
 };
 
-const durationToMinutes = (duration: string): number => {
-  const hourMatch = duration.match(/(\d+)h/);
-  const minuteMatch = duration.match(/(\d+)m/);
-  const hours = hourMatch ? parseInt(hourMatch[1]) : 0;
-  const minutes = minuteMatch ? parseInt(minuteMatch[1]) : 0;
-  return hours * 60 + minutes;
+const durationToMinutes = (durationMin: number): number => {
+  return durationMin;
 };
 
 const startMinutes = 0;
 
 const calculatePosition = (item: ScheduleItem) => {
-  const itemMinutes = timeToMinutes(item.time);
-  const duration = durationToMinutes(item.duration);
+  const itemMinutes = timeToMinutes(item.startTime);
+  const duration = durationToMinutes(item.durationMin);
   const topPosition = ((itemMinutes - startMinutes) / 60) * 80;
   const height = (duration / 60) * 80;
   return { top: topPosition, height };
 };
 
 export default function TodayScreen() {
+  const { t } = useLocalization();
   const [plannedSchedule, setPlannedSchedule] = useState<ScheduleItem[]>([]);
   const [actualSchedule, setActualSchedule] = useState<ScheduleItem[]>([]);
   const [activeTab, setActiveTab] = useState('comparison');
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedSchedule, setSelectedSchedule] = useState<ScheduleItem | null>(null);
   const [newScheduleTitle, setNewScheduleTitle] = useState('');
-  const [newScheduleTime, setNewScheduleTime] = useState('');
+  const [newScheduleDate, setNewScheduleDate] = useState(new Date());
+  const [newScheduleStartTime, setNewScheduleStartTime] = useState('');
   const [newScheduleDuration, setNewScheduleDuration] = useState('');
   const [isActual, setIsActual] = useState(false);
   const scrollViewRef = React.useRef<ScrollView>(null);
@@ -79,11 +83,23 @@ export default function TodayScreen() {
     try {
       const storedPlannedSchedule = await AsyncStorage.getItem('plannedSchedule');
       if (storedPlannedSchedule !== null) {
-        setPlannedSchedule(JSON.parse(storedPlannedSchedule));
+        const parsed = JSON.parse(storedPlannedSchedule);
+        const validated = z.array(ScheduleItemSchema).safeParse(parsed);
+        if (validated.success) {
+          setPlannedSchedule(validated.data);
+        } else {
+          console.error('Invalid planned schedule data:', validated.error);
+        }
       }
       const storedActualSchedule = await AsyncStorage.getItem('actualSchedule');
       if (storedActualSchedule !== null) {
-        setActualSchedule(JSON.parse(storedActualSchedule));
+        const parsed = JSON.parse(storedActualSchedule);
+        const validated = z.array(ScheduleItemSchema).safeParse(parsed);
+        if (validated.success) {
+          setActualSchedule(validated.data);
+        } else {
+          console.error('Invalid actual schedule data:', validated.error);
+        }
       }
     } catch (error) {
       console.error('Failed to load schedules.', error);
@@ -112,8 +128,9 @@ export default function TodayScreen() {
     const newSchedule: ScheduleItem = {
       id: Date.now(),
       title: newScheduleTitle,
-      time: newScheduleTime,
-      duration: newScheduleDuration,
+      dateISO: newScheduleDate.toISOString().split('T')[0],
+      startTime: newScheduleStartTime,
+      durationMin: parseInt(newScheduleDuration, 10),
       type: 'task',
       color: { bg: '#eff6ff', border: '#bae6fd' },
     };
@@ -123,7 +140,7 @@ export default function TodayScreen() {
       setPlannedSchedule([...plannedSchedule, newSchedule]);
     }
     setNewScheduleTitle('');
-    setNewScheduleTime('');
+    setNewScheduleStartTime('');
     setNewScheduleDuration('');
     setModalVisible(false);
   };
@@ -132,25 +149,25 @@ export default function TodayScreen() {
     if (!selectedSchedule) return;
     if (isActual) {
       setActualSchedule(actualSchedule.map(item =>
-        item.id === selectedSchedule.id ? { ...item, title: newScheduleTitle, time: newScheduleTime, duration: newScheduleDuration } : item
+        item.id === selectedSchedule.id ? { ...item, title: newScheduleTitle, startTime: newScheduleStartTime, durationMin: parseInt(newScheduleDuration, 10) } : item
       ));
     } else {
       setPlannedSchedule(plannedSchedule.map(item =>
-        item.id === selectedSchedule.id ? { ...item, title: newScheduleTitle, time: newScheduleTime, duration: newScheduleDuration } : item
+        item.id === selectedSchedule.id ? { ...item, title: newScheduleTitle, startTime: newScheduleStartTime, durationMin: parseInt(newScheduleDuration, 10) } : item
       ));
     }
     setNewScheduleTitle('');
-    setNewScheduleTime('');
+    setNewScheduleStartTime('');
     setNewScheduleDuration('');
     setSelectedSchedule(null);
     setModalVisible(false);
   };
 
   const deleteScheduleItem = (id: number) => {
-    Alert.alert("Delete Schedule Item", "Are you sure you want to delete this item?", [
-      { text: "Cancel", style: "cancel" },
+    Alert.alert(t('common.deleteScheduleTitle'), t('common.deleteScheduleMessage'), [
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: "OK", onPress: () => {
+        text: t('common.ok'), onPress: () => {
           setPlannedSchedule(plannedSchedule.filter(item => item.id !== id));
           setActualSchedule(actualSchedule.filter(item => item.id !== id));
         }
@@ -165,15 +182,15 @@ export default function TodayScreen() {
   };
 
   const today = new Date();
-  const dateString = today.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+  const dateString = today.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
 
   const ComparisonTimeline = () => (
     <View style={styles.timelineContainer}>
       <View style={{ flexDirection: 'row', marginBottom: 12 }}>
         <View style={{ width: 48 }} />
         <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-around' }}>
-          <Text style={styles.timelineHeaderText}>理想</Text>
-          <Text style={styles.timelineHeaderText}>実際</Text>
+          <Text style={styles.timelineHeaderText}>{t('calendar.ideal')}</Text>
+          <Text style={styles.timelineHeaderText}>{t('calendar.actual')}</Text>
         </View>
       </View>
       <View style={{ height: timelineHours.length * 80 }}>
@@ -263,7 +280,7 @@ export default function TodayScreen() {
       </View>
 
       <Card style={styles.progressCard}>
-        <Text style={styles.progressTitle}>Today's Progress</Text>
+        <Text style={styles.progressTitle}>{t('today.progress')}</Text>
         <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }}>
           <Progress value={calculateProgress()} />
           <Text style={styles.progressPercentage}>{calculateProgress()}%</Text>
@@ -273,10 +290,10 @@ export default function TodayScreen() {
       <ScrollView ref={scrollViewRef} style={styles.container} contentContainerStyle={styles.contentContainer}>
         <View style={styles.tabsContainer}>
           <Pressable style={[styles.tab, activeTab === 'comparison' && styles.activeTab]} onPress={() => setActiveTab('comparison')}>
-            <Text style={[styles.tabText, activeTab === 'comparison' && styles.activeTabText]}>比較表示</Text>
+            <Text style={[styles.tabText, activeTab === 'comparison' && styles.activeTabText]}>{t('calendar.comparison')}</Text>
           </Pressable>
           <Pressable style={[styles.tab, activeTab === 'single' && styles.activeTab]} onPress={() => setActiveTab('single')}>
-            <Text style={[styles.tabText, activeTab === 'single' && styles.activeTabText]}>実際のみ</Text>
+            <Text style={[styles.tabText, activeTab === 'single' && styles.activeTabText]}>{t('calendar.single')}</Text>
           </Pressable>
         </View>
 
@@ -287,7 +304,7 @@ export default function TodayScreen() {
       <Pressable style={styles.fab} onPress={() => {
         setSelectedSchedule(null);
         setNewScheduleTitle('');
-        setNewScheduleTime('');
+        setNewScheduleStartTime('');
         setNewScheduleDuration('');
         setModalVisible(true);
       }}>
@@ -304,28 +321,29 @@ export default function TodayScreen() {
           <Pressable style={styles.modalView} onPress={(e) => e.stopPropagation()}>
             <TextInput
               style={styles.modalTextInput}
-              placeholder="Title"
+              placeholder={t('common.titlePlaceholder')}
               value={newScheduleTitle}
               onChangeText={setNewScheduleTitle}
             />
             <TextInput
               style={styles.modalTextInput}
-              placeholder="Time (e.g., 10:00)"
-              value={newScheduleTime}
-              onChangeText={setNewScheduleTime}
+              placeholder={t('common.startTimePlaceholder')}
+              value={newScheduleStartTime}
+              onChangeText={setNewScheduleStartTime}
             />
             <TextInput
               style={styles.modalTextInput}
-              placeholder="Duration (e.g., 1h 30m)"
+              placeholder={t('common.durationPlaceholder')}
               value={newScheduleDuration}
               onChangeText={setNewScheduleDuration}
+              keyboardType="numeric"
             />
             <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16 }}>
               <Switch value={isActual} onValueChange={setIsActual} />
-              <Text style={{ marginLeft: 8 }}>Actual Schedule</Text>
+              <Text style={{ marginLeft: 8 }}>{t('common.actualSchedule')}</Text>
             </View>
-            <Button title={selectedSchedule ? "Update" : "Add"} onPress={handleAddScheduleItem} />
-            {selectedSchedule && <Button title="Delete" onPress={() => deleteScheduleItem(selectedSchedule.id)} color="red" />}
+            <Button title={selectedSchedule ? t('habits.update') : t('habits.add')} onPress={handleAddScheduleItem} />
+            {selectedSchedule && <Button title={t('habits.delete')} onPress={() => deleteScheduleItem(selectedSchedule.id)} color="red" />}
           </Pressable>
         </Pressable>
       </Modal>
@@ -333,35 +351,36 @@ export default function TodayScreen() {
   );
 }
 
+
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f8fafc' },
+  container: { flex: 1, backgroundColor: colors.background },
   contentContainer: { paddingHorizontal: 16, paddingBottom: 80 },
   headerContainer: { paddingHorizontal: 16, paddingTop: 16 },
-  headerTitle: { fontSize: 24, fontWeight: 'bold', color: '#1e293b' },
-  headerDate: { fontSize: 16, color: '#475569' },
+  headerTitle: { fontSize: 24, fontWeight: 'bold', color: colors.text },
+  headerDate: { fontSize: 16, color: colors.textMuted },
   statsContainer: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 16, marginBottom: 16 },
-  progressCard: { padding: 16, borderRadius: 16, backgroundColor: '#f0f5ff', marginHorizontal: 16, marginBottom: 16 },
-  progressTitle: { fontSize: 16, fontWeight: 'bold', color: '#1e293b' },
-  progressPercentage: { fontSize: 16, fontWeight: 'bold', color: '#1e293b', marginLeft: 8 },
-  tabsContainer: { flexDirection: 'row', backgroundColor: '#e2e8f0', borderRadius: 12, padding: 4, marginBottom: 16 },
+  progressCard: { padding: 16, borderRadius: 16, backgroundColor: colors.primaryLight, marginHorizontal: 16, marginBottom: 16 },
+  progressTitle: { fontSize: 16, fontWeight: 'bold', color: colors.text },
+  progressPercentage: { fontSize: 16, fontWeight: 'bold', color: colors.text, marginLeft: 8 },
+  tabsContainer: { flexDirection: 'row', backgroundColor: colors.border, borderRadius: 12, padding: 4, marginBottom: 16 },
   tab: { flex: 1, paddingVertical: 8, borderRadius: 8 },
   activeTab: { backgroundColor: 'white' },
-  tabText: { textAlign: 'center', color: '#475569' },
-  activeTabText: { color: '#1e293b', fontWeight: 'bold' },
+  tabText: { textAlign: 'center', color: colors.textMuted },
+  activeTabText: { color: colors.text, fontWeight: 'bold' },
   timelineContainer: { marginTop: 16 },
-  timelineHeaderText: { color: '#64748b', fontSize: 12 },
+  timelineHeaderText: { color: colors.textSubtle, fontSize: 12 },
   hourContainer: { height: 80, flexDirection: 'row', alignItems: 'flex-start' },
-  hourLabel: { width: 48, color: '#94a3b8', fontSize: 12, top: -6 },
-  hourLine: { flex: 1, height: 1, backgroundColor: '#e2e8f0' },
+  hourLabel: { width: 48, color: colors.textSubtle, fontSize: 12, top: -6 },
+  hourLine: { flex: 1, height: 1, backgroundColor: colors.border },
   scheduleItemsContainer: { position: 'absolute', top: 0, left: 48, right: 0, bottom: 0, flexDirection: 'row' },
   scheduleItem: { position: 'absolute', left: 4, right: 4, borderRadius: 8, padding: 8, borderWidth: 1 },
   scheduleItemTitle: { fontSize: 12, fontWeight: 'bold' },
-  currentItem: { borderWidth: 2, borderColor: '#2563eb' },
+  currentItem: { borderWidth: 2, borderColor: colors.primary },
   card: { backgroundColor: 'white', borderRadius: 8, padding: 16, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.20, shadowRadius: 1.41, elevation: 2 },
-  progressContainer: { height: 8, backgroundColor: '#e5e7eb', borderRadius: 4 },
-  progressBar: { height: 8, backgroundColor: '#2563eb', borderRadius: 4 },
-  fab: { position: 'absolute', bottom: 60, right: 24, width: 56, height: 56, borderRadius: 28, backgroundColor: '#2563eb', justifyContent: 'center', alignItems: 'center', elevation: 8 },
+  progressContainer: { height: 8, backgroundColor: colors.border, borderRadius: 4 },
+  progressBar: { height: 8, backgroundColor: colors.primary, borderRadius: 4 },
+  fab: { position: 'absolute', bottom: 60, right: 24, width: 56, height: 56, borderRadius: 28, backgroundColor: colors.primary, justifyContent: 'center', alignItems: 'center', elevation: 8 },
   modalContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)' },
   modalView: { backgroundColor: 'white', borderRadius: 12, padding: 24, alignItems: 'center', width: '80%' },
-  modalTextInput: { borderWidth: 1, borderColor: '#d1d5db', borderRadius: 8, padding: 12, marginBottom: 16, width: '100%' },
+  modalTextInput: { borderWidth: 1, borderColor: colors.inputBorder, borderRadius: 8, padding: 12, marginBottom: 16, width: '100%' },
 });
