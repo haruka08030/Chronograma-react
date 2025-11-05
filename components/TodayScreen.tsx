@@ -188,12 +188,12 @@ export default function TodayScreen() {
             {plannedSchedule.map((item, index) => {
               const { top, height } = calculatePosition(item);
               return (
-                <Pressable key={index} onLongPress={() => {
+                <Pressable key={index} onPress={() => {
                   setSelectedSchedule(item);
                   setIsActual(false);
                   setModalVisible(true);
                 }}>
-                  <View style={[styles.scheduleItem, { top, height, backgroundColor: item.color.bg, borderColor: item.color.border }]}>
+                  <View style={[styles.scheduleItem, { top, top, height, backgroundColor: item.color.bg, borderColor: item.color.border }]}>
                     <Text style={styles.scheduleItemTitle}>{item.title}</Text>
                   </View>
                 </Pressable>
@@ -235,7 +235,7 @@ export default function TodayScreen() {
             {actualSchedule.map((item, index) => {
               const { top, height } = calculatePosition(item);
               return (
-                <Pressable key={index} onLongPress={() => {
+                <Pressable key={index} onPress={() => {
                   setSelectedSchedule(item);
                   setIsActual(true);
                   setModalVisible(true);
@@ -301,8 +301,8 @@ export default function TodayScreen() {
         visible={modalVisible}
         onRequestClose={() => setModalVisible(false)}
       >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalView}>
+        <Pressable style={styles.modalContainer} onPress={() => setModalVisible(false)}>
+          <Pressable style={styles.modalView} onPress={(e) => e.stopPropagation()}>
             <TextInput
               style={styles.modalTextInput}
               placeholder="Title"
@@ -327,8 +327,8 @@ export default function TodayScreen() {
             </View>
             <Button title={selectedSchedule ? "Update" : "Add"} onPress={handleAddScheduleItem} />
             {selectedSchedule && <Button title="Delete" onPress={() => deleteScheduleItem(selectedSchedule.id)} color="red" />}
-          </View>
-        </View>
+          </Pressable>
+        </Pressable>
       </Modal>
     </View>
   );
