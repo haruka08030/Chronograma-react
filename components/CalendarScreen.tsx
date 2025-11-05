@@ -222,7 +222,7 @@ export default function CalendarScreen() {
 
         <View style={styles.calendarGrid}>
           {Array.from({ length: startingDayOfWeek }).map((_, index) => (
-            <View key={`empty-${index}`} style={styles.dayCell} />
+            <View key={`empty-${index}`} style={styles.emptyDayCell} />
           ))}
           {Array.from({ length: daysInMonth }).map((_, index) => {
             const day = index + 1;
@@ -245,9 +245,8 @@ export default function CalendarScreen() {
             }
 
             return (
-              <View key={day} style={{ height: 50, width: '14.28%', justifyContent: 'center', alignItems: 'center' }}>
+              <View key={day} style={{ height: 56, width: '14.28%', justifyContent: 'center', alignItems: 'center' }}>
                 <Pressable
-                  key={day}
                   onPress={() => setSelectedDate(date)}
                   style={[
                     styles.dayCell,
@@ -256,6 +255,7 @@ export default function CalendarScreen() {
                     !isToday && !isSelected && activityStyle,
                   ]}
                   accessibilityLabel={accessibilityLabel}
+                  hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
                 >
                   <Text style={[
                     styles.dayText,
@@ -302,16 +302,17 @@ const styles = StyleSheet.create({
   dayHeaders: { flexDirection: 'row', justifyContent: 'space-around', marginBottom: 8 },
   dayHeader: { width: '14.28%', alignItems: 'center' },
   dayHeaderText: { fontSize: 12, color: '#64748b' },
-  calendarGrid: { flexDirection: 'row', flexWrap: 'wrap', rowGap: 10 },
-  dayCell: { width: '12%', aspectRatio: 1, justifyContent: 'center', alignItems: 'center', borderRadius: 999 },
-  dayText: { fontSize: 14, color: '#334155' },
+  calendarGrid: { flexDirection: 'row', flexWrap: 'wrap', rowGap: 8 },
+  emptyDayCell: { height: 0, width: '14.28%' },
+  dayCell: { width: '100%', height: 56, justifyContent: 'center', alignItems: 'center', borderRadius: 999, paddingVertical: 2 },
+  dayText: { fontSize: 18, fontWeight: '400', color: '#334155' },
   todayCell: { backgroundColor: '#2563eb' },
   todayText: { color: 'white' },
   selectedCell: { backgroundColor: '#7c3aed' },
   selectedText: { color: 'white' },
-  activityCellLow: { backgroundColor: '#e0f2fe' },
-  activityCellHigh: { backgroundColor: '#bae6fd' },
-  activityDot: { width: 4, height: 4, borderRadius: 2, marginTop: 2 },
+  activityCellLow: { backgroundColor: '#eef6ff' },
+  activityCellHigh: { backgroundColor: '#dbeafe' },
+  activityDot: { width: 4, height: 4, borderRadius: 2, marginTop: 6 },
   todayDot: { backgroundColor: '#2563eb' },
   selectedDot: { backgroundColor: '#7c3aed' },
   card: { backgroundColor: 'white', borderRadius: 8, padding: 16, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.20, shadowRadius: 1.41, elevation: 2 },
