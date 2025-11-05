@@ -254,24 +254,23 @@ export default function TodayScreen() {
 
   return (
     <View style={{ flex: 1 }}>
+      <View style={styles.headerContainer}>
+        <Text style={styles.headerTitle}>{dateString}</Text>
+      </View>
+
+      <View style={styles.statsContainer}>
+        {/* Stats cards */}
+      </View>
+
+      <Card style={styles.progressCard}>
+        <Text style={styles.progressTitle}>Today's Progress</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }}>
+          <Progress value={calculateProgress()} />
+          <Text style={styles.progressPercentage}>{calculateProgress()}%</Text>
+        </View>
+      </Card>
+
       <ScrollView ref={scrollViewRef} style={styles.container} contentContainerStyle={styles.contentContainer}>
-        <View style={styles.headerContainer}>
-          <Text style={styles.headerTitle}>Chronograma</Text>
-          <Text style={styles.headerDate}>{dateString}</Text>
-        </View>
-
-        <View style={styles.statsContainer}>
-          {/* Stats cards */}
-        </View>
-
-        <Card style={styles.progressCard}>
-          <Text style={styles.progressTitle}>Today's Progress</Text>
-          <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }}>
-            <Progress value={calculateProgress()} />
-            <Text style={styles.progressPercentage}>{calculateProgress()}%</Text>
-          </View>
-        </Card>
-
         <View style={styles.tabsContainer}>
           <Pressable style={[styles.tab, activeTab === 'comparison' && styles.activeTab]} onPress={() => setActiveTab('comparison')}>
             <Text style={[styles.tabText, activeTab === 'comparison' && styles.activeTabText]}>比較表示</Text>
@@ -336,12 +335,12 @@ export default function TodayScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f8fafc' },
-  contentContainer: { padding: 16, paddingBottom: 80 },
-  headerContainer: { marginBottom: 16 },
+  contentContainer: { paddingHorizontal: 16, paddingBottom: 80 },
+  headerContainer: { paddingHorizontal: 16, paddingTop: 16 },
   headerTitle: { fontSize: 24, fontWeight: 'bold', color: '#1e293b' },
   headerDate: { fontSize: 16, color: '#475569' },
-  statsContainer: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 16 },
-  progressCard: { padding: 16, borderRadius: 16, backgroundColor: '#f0f5ff', marginBottom: 16 },
+  statsContainer: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 16, marginBottom: 16 },
+  progressCard: { padding: 16, borderRadius: 16, backgroundColor: '#f0f5ff', marginHorizontal: 16, marginBottom: 16 },
   progressTitle: { fontSize: 16, fontWeight: 'bold', color: '#1e293b' },
   progressPercentage: { fontSize: 16, fontWeight: 'bold', color: '#1e293b', marginLeft: 8 },
   tabsContainer: { flexDirection: 'row', backgroundColor: '#e2e8f0', borderRadius: 12, padding: 4, marginBottom: 16 },
