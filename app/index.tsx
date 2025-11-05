@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Pressable, SafeAreaView, Platform } from 'react-native';
 import { CalendarDays, CheckSquare, Settings, TrendingUp, Home } from 'lucide-react-native';
-import TodayScreen from '../components/TodayScreen';
-import CalendarScreen from '../components/CalendarScreen';
-import ToDoScreen from '../components/ToDoScreen';
-import HabitsScreen from '../components/HabitsScreen';
-import SettingsScreen from '../components/SettingsScreen';
+import TodayScreen from '../components/screens/TodayScreen';
+import CalendarScreen from '../components/screens/CalendarScreen';
+import ToDoScreen from '../components/screens/ToDoScreen';
+import HabitsScreen from '../components/screens/HabitsScreen';
+import SettingsScreen from '../components/screens/SettingsScreen';
 
 export default function Index() {
   const [activeTab, setActiveTab] = useState('today');
@@ -63,10 +63,12 @@ export default function Index() {
   );
 }
 
+import { colors } from '../components/theme';
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8fafc',
+    backgroundColor: colors.background,
     paddingTop: Platform.OS === 'android' ? 25 : 0,
   },
   mainContent: {
@@ -79,7 +81,7 @@ const styles = StyleSheet.create({
     right: 0,
     backgroundColor: 'white',
     borderTopWidth: 1,
-    borderTopColor: '#e2e8f0',
+    borderTopColor: colors.border,
   },
   tabBar: {
     flexDirection: 'row',
@@ -96,14 +98,14 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   activeTab: {
-    backgroundColor: '#eff6ff',
+    backgroundColor: colors.primaryLight,
   },
   tabLabel: {
     fontSize: 12,
     marginTop: 4,
-    color: '#64748b',
+    color: colors.textSubtle,
   },
   activeLabel: {
-    color: '#2563eb',
+    color: colors.primary,
   },
 });

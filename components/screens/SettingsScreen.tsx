@@ -98,24 +98,26 @@ export default function SettingsScreen() {
   );
 }
 
+import { colors } from '../theme';
+
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f8fafc' },
+  container: { flex: 1, backgroundColor: colors.background },
   contentContainer: { padding: 16 },
   headerContainer: { marginBottom: 16 },
-  headerTitle: { fontSize: 24, fontWeight: 'bold', color: '#1e293b' },
-  headerSubtitle: { fontSize: 16, color: '#475569' },
-  profileCard: { padding: 16, borderRadius: 16, backgroundColor: '#f0f5ff', marginBottom: 16 },
-  avatar: { width: 64, height: 64, borderRadius: 32, backgroundColor: '#2563eb', justifyContent: 'center', alignItems: 'center' },
+  headerTitle: { fontSize: 24, fontWeight: 'bold', color: colors.text },
+  headerSubtitle: { fontSize: 16, color: colors.textMuted },
+  profileCard: { padding: 16, borderRadius: 16, backgroundColor: colors.primaryLight, marginBottom: 16 },
+  avatar: { width: 64, height: 64, borderRadius: 32, backgroundColor: colors.primary, justifyContent: 'center', alignItems: 'center' },
   avatarText: { color: 'white', fontSize: 24 },
-  profileName: { fontSize: 18, fontWeight: 'bold', color: '#1e293b' },
-  profileEmail: { fontSize: 14, color: '#475569', marginTop: 4 },
-  sectionTitle: { fontSize: 18, fontWeight: 'bold', color: '#1e293b', marginBottom: 8, paddingHorizontal: 4 },
+  profileName: { fontSize: 18, fontWeight: 'bold', color: colors.text },
+  profileEmail: { fontSize: 14, color: colors.textMuted, marginTop: 4 },
+  sectionTitle: { fontSize: 18, fontWeight: 'bold', color: colors.text, marginBottom: 8, paddingHorizontal: 4 },
   settingsCard: { borderRadius: 16, backgroundColor: 'white', overflow: 'hidden' },
   settingItem: { flexDirection: 'row', alignItems: 'center', padding: 16, gap: 12 },
-  settingIconContainer: { width: 40, height: 40, borderRadius: 12, backgroundColor: '#f1f5f9', justifyContent: 'center', alignItems: 'center' },
-  settingLabel: { fontSize: 16, color: '#1e293b' },
-  settingValue: { fontSize: 14, color: '#64748b', marginTop: 2 },
-  logoutButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', padding: 16, borderRadius: 16, backgroundColor: 'white', borderWidth: 1, borderColor: '#e2e8f0', gap: 8, marginTop: 16 },
-  logoutButtonText: { color: '#ef4444', fontSize: 16 },
+  settingIconContainer: { width: 40, height: 40, borderRadius: 12, backgroundColor: colors.border, justifyContent: 'center', alignItems: 'center' },
+  settingLabel: { fontSize: 16, color: colors.text },
+  settingValue: { fontSize: 14, color: colors.textSubtle, marginTop: 2 },
+  logoutButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', padding: 16, borderRadius: 16, backgroundColor: 'white', borderWidth: 1, borderColor: colors.border, gap: 8, marginTop: 16 },
+  logoutButtonText: { color: colors.rose, fontSize: 16 },
   card: { backgroundColor: 'white', borderRadius: 8, padding: 16, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.20, shadowRadius: 1.41, elevation: 2 },
 });

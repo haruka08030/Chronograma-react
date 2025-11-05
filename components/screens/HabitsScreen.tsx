@@ -616,84 +616,86 @@ export default function HabitsScreen() {
   );
 }
 
+import { colors } from '../theme';
+
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f8fafc' },
+  container: { flex: 1, backgroundColor: colors.background },
   contentContainer: { padding: 16, paddingBottom: 80 },
 
   // Header
   headerContainer: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 },
   headerTextContainer: {},
-  headerTitle: { fontSize: 24, fontWeight: 'bold', color: '#1e293b' },
-  headerSubtitle: { fontSize: 16, color: '#475569' },
-  addButton: { backgroundColor: '#2563eb', padding: 12, borderRadius: 999, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.25, shadowRadius: 3.84, elevation: 5 },
+  headerTitle: { fontSize: 24, fontWeight: 'bold', color: colors.text },
+  headerSubtitle: { fontSize: 16, color: colors.textMuted },
+  addButton: { backgroundColor: colors.primary, padding: 12, borderRadius: 999, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.25, shadowRadius: 3.84, elevation: 5 },
 
   // Weekly Overview
-  weeklyOverviewCard: { padding: 16, borderRadius: 16, backgroundColor: '#f0f5ff', marginBottom: 16, borderColor: '#bfdbfe', borderWidth: 1 },
+  weeklyOverviewCard: { padding: 16, borderRadius: 16, backgroundColor: colors.primaryLight, marginBottom: 16, borderColor: colors.primaryBorder, borderWidth: 1 },
   weeklyOverviewContent: {},
   weeklyOverviewHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
-  weeklyOverviewTitle: { fontSize: 16, color: '#1e293b' },
-  weeklyOverviewBadge: { backgroundColor: '#2563eb', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 4 },
+  weeklyOverviewTitle: { fontSize: 16, color: colors.text },
+  weeklyOverviewBadge: { backgroundColor: colors.primary, borderRadius: 8, paddingHorizontal: 8, paddingVertical: 4 },
   weeklyOverviewBadgeText: { color: 'white', fontSize: 12 },
   weekDaysContainer: { flexDirection: 'row', justifyContent: 'space-between', gap: 8 },
   weekDayItem: { flex: 1, paddingVertical: 8, borderRadius: 8, alignItems: 'center' },
-  todayWeekDayItem: { backgroundColor: '#2563eb' },
+  todayWeekDayItem: { backgroundColor: colors.primary },
   normalWeekDayItem: { backgroundColor: 'white' },
-  weekDayText: { fontSize: 12, color: '#475569' },
+  weekDayText: { fontSize: 12, color: colors.textMuted },
 
   // Habits List
   habitsListContainer: { marginBottom: 16 },
-  listTitle: { fontSize: 18, fontWeight: 'bold', color: '#1e293b', marginBottom: 8 },
+  listTitle: { fontSize: 18, fontWeight: 'bold', color: colors.text, marginBottom: 8 },
   habitsGrid: { gap: 12 },
-  habitItemCard: { padding: 16, borderRadius: 12, backgroundColor: 'white', borderColor: '#e2e8f0', borderWidth: 1, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 2 },
+  habitItemCard: { padding: 16, borderRadius: 12, backgroundColor: 'white', borderColor: colors.border, borderWidth: 1, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 2 },
   habitItemContent: {},
   habitItemHeader: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, marginBottom: 12 },
   habitIconBg: { width: 48, height: 48, borderRadius: 12, justifyContent: 'center', alignItems: 'center', flexShrink: 0 },
   habitTextContainer: { flex: 1, minWidth: 0 },
-  habitName: { fontSize: 16, color: '#1e293b' },
-  habitTime: { fontSize: 12, color: '#475569', marginTop: 4 },
+  habitName: { fontSize: 16, color: colors.text },
+  habitTime: { fontSize: 12, color: colors.textMuted, marginTop: 4 },
   habitStatsContainer: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 8 },
-  streakBadge: { backgroundColor: '#fff7ed', borderRadius: 6, paddingHorizontal: 8, paddingVertical: 4, borderColor: '#fed7aa', borderWidth: 1 },
-  streakText: { color: '#f97316', fontSize: 12 },
-  completionText: { fontSize: 12, color: '#64748b' },
+  streakBadge: { backgroundColor: colors.streakBadge, borderRadius: 6, paddingHorizontal: 8, paddingVertical: 4, borderColor: colors.streakBorder, borderWidth: 1 },
+  streakText: { color: colors.streak, fontSize: 12 },
+  completionText: { fontSize: 12, color: colors.textSubtle },
   habitActions: { flexDirection: 'row', gap: 4, opacity: 0 }, // opacity will be handled by animation if needed
   actionButton: { padding: 4, borderRadius: 4 },
 
   // Weekly Progress Dots
   weeklyProgressContainer: { flexDirection: 'row', justifyContent: 'space-between', gap: 6, marginTop: 12 },
   progressSquare: { flex: 1, aspectRatio: 1, borderRadius: 6 },
-  completedSquare: { backgroundColor: '#6ee7b7' },
-  incompleteSquare: { backgroundColor: '#e2e8f0' },
+  completedSquare: { backgroundColor: colors.completed },
+  incompleteSquare: { backgroundColor: colors.border },
 
   // Empty State
   emptyStateContainer: { textAlign: 'center', paddingVertical: 48 },
-  emptyStateText: { fontSize: 16, color: '#94a3b8', textAlign: 'center' },
+  emptyStateText: { fontSize: 16, color: colors.textSubtle, textAlign: 'center' },
 
   // Stats Card
-  statsCard: { padding: 16, borderRadius: 16, backgroundColor: '#ecfdf5', borderColor: '#a7f3d0', borderWidth: 1, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 2 },
+  statsCard: { padding: 16, borderRadius: 16, backgroundColor: colors.statsCard, borderColor: colors.statsCardBorder, borderWidth: 1, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 2 },
   statsContent: { flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center' },
   statItem: { alignItems: 'center' },
-  statValue: { fontSize: 16, color: '#1e293b', fontWeight: 'bold' },
-  statLabel: { fontSize: 12, color: '#475569' },
-  statDivider: { width: 1, height: 32, backgroundColor: '#e2e8f0' },
+  statValue: { fontSize: 16, color: colors.text, fontWeight: 'bold' },
+  statLabel: { fontSize: 12, color: colors.textMuted },
+  statDivider: { width: 1, height: 32, backgroundColor: colors.border },
 
   // Modal
   modalContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)' },
   modalContent: { backgroundColor: 'white', borderRadius: 12, padding: 20, width: '90%', maxHeight: '80%' },
   modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
-  modalTitle: { fontSize: 20, fontWeight: 'bold', color: '#1e293b' },
-  closeButton: { fontSize: 24, color: '#64748b' },
+  modalTitle: { fontSize: 20, fontWeight: 'bold', color: colors.text },
+  closeButton: { fontSize: 24, color: colors.textSubtle },
 
   // Form
   formGroup: { marginBottom: 16 },
-  label: { fontSize: 14, color: '#1e293b', marginBottom: 8 },
-  input: { borderWidth: 1, borderColor: '#d1d5db', borderRadius: 8, padding: 12, width: '100%', fontSize: 16, color: '#1e293b' },
-  selectContainer: { borderWidth: 1, borderColor: '#d1d5db', borderRadius: 8, width: '100%' },
+  label: { fontSize: 14, color: colors.text, marginBottom: 8 },
+  input: { borderWidth: 1, borderColor: colors.inputBorder, borderRadius: 8, padding: 12, width: '100%', fontSize: 16, color: colors.text },
+  selectContainer: { borderWidth: 1, borderColor: colors.inputBorder, borderRadius: 8, width: '100%' },
   picker: { width: '100%', height: 50 },
 
   // Buttons
-  primaryButton: { backgroundColor: '#2563eb', padding: 14, borderRadius: 8, marginTop: 20, width: '100%', alignItems: 'center' },
+  primaryButton: { backgroundColor: colors.primary, padding: 14, borderRadius: 8, marginTop: 20, width: '100%', alignItems: 'center' },
   primaryButtonText: { color: 'white', fontSize: 16, fontWeight: 'bold' },
-  deleteButton: { backgroundColor: '#ef4444', marginTop: 10 },
+  deleteButton: { backgroundColor: colors.rose, marginTop: 10 },
   card: { backgroundColor: 'white', borderRadius: 8, padding: 16, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.20, shadowRadius: 1.41, elevation: 2 },
   badge: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },
 });
