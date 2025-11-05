@@ -146,12 +146,10 @@ export default function HabitsScreen() {
           {habits.map((habit: Habit) => {
             const Icon = iconMap[habit.icon];
             const streak = calculateStreak(habit.completion);
+
             return (
-              <Pressable key={habit.id} onLongPress={() => {
+              <Pressable key={habit.id} onPress={() => {
                 setSelectedHabit(habit);
-                setNewHabitName(habit.name);
-                setNewHabitTime(habit.time);
-                setNewHabitColor(habit.color.bg);
                 setModalVisible(true);
               }}>
                 <Card style={styles.habitCard}>
