@@ -1,6 +1,7 @@
 import { CheckCircle2, Circle, Flag, Plus } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import { Alert, Button, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const Card = ({ children, style }: { children: React.ReactNode, style?: any }) => (
   <View style={[styles.card, style]}>{children}</View>
@@ -24,8 +25,6 @@ interface FolderType {
   name: string;
   icon: string;
 }
-
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function ToDoScreen() {
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -60,7 +59,10 @@ export default function ToDoScreen() {
   };
 
   const addTask = () => {
-    if (newTaskTitle.trim() === '') return;
+    if (newTaskTitle.trim() === '') {
+      Alert.alert('Task title is required');
+      return;
+    }
     const newTask: Task = {
       id: Date.now(),
       title: newTaskTitle,
@@ -143,7 +145,7 @@ export default function ToDoScreen() {
   const displayCompletedTasks = displayTasks.filter((task: Task) => task.completed);
 
   const TaskItem = ({ task }: { task: Task }) => (
-    <Pressable onLongPress={() => {
+    <Pressable onPress={() => {
       setSelectedTask(task);
       setModalVisible(true);
     }}>
@@ -221,8 +223,8 @@ export default function ToDoScreen() {
         visible={modalVisible}
         onRequestClose={() => setModalVisible(false)}
       >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalView}>
+        <Pressable style={styles.modalContainer} onPress={() => setModalVisible(false)}>
+          <Pressable style={styles.modalView} onPress={(e) => e.stopPropagation()}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>タスク追加</Text>
               <Pressable onPress={() => setModalVisible(false)}>
@@ -261,8 +263,8 @@ export default function ToDoScreen() {
               <Text style={styles.primaryButtonText}>{selectedTask ? "タスクを更新" : "追加"}</Text>
             </Pressable>
             {selectedTask && <Button title="Delete Task" onPress={() => deleteTask(selectedTask.id)} color="red" />}
-          </View>
-        </View>
+          </Pressable>
+        </Pressable>
       </Modal>
     </View>
   );

@@ -1,12 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
 import { ChevronLeft, ChevronRight, Download } from 'lucide-react-native';
+
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const Card = ({ children, style }: { children: React.ReactNode, style?: any }) => (
   <View style={[styles.card, style]}>{children}</View>
 );
 
 interface ScheduleItem {
+  id: number;
   time: string;
   title: string;
   duration: string;
@@ -18,21 +21,13 @@ interface ScheduleItem {
   unplanned?: boolean;
 }
 
-const plannedSchedule: ScheduleItem[] = [
-  { time: '8:00', title: 'Math Class', duration: '2h', type: 'class', color: { bg: '#f0f9ff', border: '#bae6fd' } },
-  { time: '10:15', title: 'Science Class', duration: '1h 45m', type: 'class', color: { bg: '#f0f9ff', border: '#bae6fd' } },
-];
+const timelineHours = Array.from({ length: 24 }, (_, i) => i);
 
-const actualSchedule: ScheduleItem[] = [
-  { time: '8:00', title: 'Math Class', duration: '2h', type: 'class', color: { bg: '#f0f9ff', border: '#bae6fd' }, completed: true },
-  { time: '10:20', title: 'Science Class', duration: '1h 40m', type: 'class', color: { bg: '#f0f9ff', border: '#bae6fd' }, completed: true },
-];
-
-const timelineHours = Array.from({ length: 12 }, (_, i) => i + 6);
 const timeToMinutes = (time: string): number => {
   const [hours, minutes] = time.split(':').map(Number);
   return hours * 60 + minutes;
 };
+
 const durationToMinutes = (duration: string): number => {
   const hourMatch = duration.match(/(\d+)h/);
   const minuteMatch = duration.match(/(\d+)m/);
@@ -40,21 +35,57 @@ const durationToMinutes = (duration: string): number => {
   const minutes = minuteMatch ? parseInt(minuteMatch[1]) : 0;
   return hours * 60 + minutes;
 };
-const startMinutes = 6 * 60;
+
+const startMinutes = 0;
+
 const calculatePosition = (item: ScheduleItem) => {
   const itemMinutes = timeToMinutes(item.time);
   const duration = durationToMinutes(item.duration);
-  const topPosition = ((itemMinutes - startMinutes) / 60) * 60;
-  const height = (duration / 60) * 60;
+  const topPosition = ((itemMinutes - startMinutes) / 60) * 80;
+  const height = (duration / 60) * 80;
   return { top: topPosition, height };
 };
 
 export default function CalendarScreen() {
+  const [plannedSchedule, setPlannedSchedule] = useState<ScheduleItem[]>([]);
+  const [actualSchedule, setActualSchedule] = useState<ScheduleItem[]>([]);
   const [currentMonth, setCurrentMonth] = useState(new Date(2025, 10));
-  const [selectedDay, setSelectedDay] = useState(2);
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [activeTab, setActiveTab] = useState('comparison');
+
+  useEffect(() => {
+    loadSchedules();
+  }, []);
+
+  const loadSchedules = async () => {
+    try {
+      const storedPlannedSchedule = await AsyncStorage.getItem('plannedSchedule');
+      if (storedPlannedSchedule !== null) {
+        setPlannedSchedule(JSON.parse(storedPlannedSchedule));
+      }
+      const storedActualSchedule = await AsyncStorage.getItem('actualSchedule');
+      if (storedActualSchedule !== null) {
+        setActualSchedule(JSON.parse(storedActualSchedule));
+      }
+    } catch (error) {
+      console.error('Failed to load schedules.', error);
+    }
+  };
+
+  const [activityMap, setActivityMap] = useState<Map<string, number>>(new Map());
+
+  useEffect(() => {
+    const newActivityMap = new Map<string, number>();
+    [...plannedSchedule, ...actualSchedule].forEach(item => {
+      const date = new Date(item.time);
+      const dateString = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+      const count = newActivityMap.get(dateString) || 0;
+      newActivityMap.set(dateString, count + 1);
+    });
+    setActivityMap(newActivityMap);
+  }, [plannedSchedule, actualSchedule]);
 
   const monthName = currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-  const selectedDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), selectedDay);
   const selectedDateString = selectedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 
   const { daysInMonth, startingDayOfWeek } = getDaysInMonth(currentMonth);
@@ -73,8 +104,95 @@ export default function CalendarScreen() {
   const nextMonth = () => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1));
 
   const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-  const activityDays = [2, 5, 8, 9, 12, 15, 16, 19, 22, 23, 26, 29];
-  const today = 2;
+  const today = new Date();
+
+  const [filteredPlannedSchedule, setFilteredPlannedSchedule] = useState<ScheduleItem[]>([]);
+  const [filteredActualSchedule, setFilteredActualSchedule] = useState<ScheduleItem[]>([]);
+
+  useEffect(() => {
+    const filteredPlanned = plannedSchedule.filter(item => {
+      const itemDate = new Date(item.time);
+      return itemDate.getDate() === selectedDate.getDate() &&
+        itemDate.getMonth() === selectedDate.getMonth() &&
+        itemDate.getFullYear() === selectedDate.getFullYear();
+    });
+    setFilteredPlannedSchedule(filteredPlanned);
+
+    const filteredActual = actualSchedule.filter(item => {
+      const itemDate = new Date(item.time);
+      return itemDate.getDate() === selectedDate.getDate() &&
+        itemDate.getMonth() === selectedDate.getMonth() &&
+        itemDate.getFullYear() === selectedDate.getFullYear();
+    });
+    setFilteredActualSchedule(filteredActual);
+  }, [selectedDate, plannedSchedule, actualSchedule]);
+
+  const ComparisonTimeline = () => (
+    <View style={styles.timelineContainer}>
+      <View style={{ flexDirection: 'row', marginBottom: 12 }}>
+        <View style={{ width: 48 }} />
+        <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-around' }}>
+          <Text style={styles.timelineHeaderText}>理想</Text>
+          <Text style={styles.timelineHeaderText}>実際</Text>
+        </View>
+      </View>
+      <View style={{ height: timelineHours.length * 80 }}>
+        {timelineHours.map(hour => (
+          <View key={hour} style={styles.hourContainer}>
+            <Text style={styles.hourLabel}>{hour}:00</Text>
+            <View style={styles.hourLine} />
+          </View>
+        ))}
+        <View style={styles.scheduleItemsContainer}>
+          <View style={{ flex: 1, position: 'relative' }}>
+            {filteredPlannedSchedule.map((item, index) => {
+              const { top, height } = calculatePosition(item);
+              return (
+                <View key={index} style={[styles.scheduleItem, { top, height, backgroundColor: item.color.bg, borderColor: item.color.border }]}>
+                  <Text style={styles.scheduleItemTitle}>{item.title}</Text>
+                </View>
+              );
+            })}
+          </View>
+          <View style={{ flex: 1, position: 'relative' }}>
+            {filteredActualSchedule.map((item, index) => {
+              const { top, height } = calculatePosition(item);
+              return (
+                <View key={index} style={[styles.scheduleItem, { top, height, backgroundColor: item.color.bg, borderColor: item.color.border }, item.current && styles.currentItem]}>
+                  <Text style={styles.scheduleItemTitle}>{item.title}</Text>
+                </View>
+              );
+            })}
+          </View>
+        </View>
+      </View>
+    </View>
+  );
+
+  const SingleTimeline = () => (
+    <View style={styles.timelineContainer}>
+      <View style={{ height: timelineHours.length * 80 }}>
+        {timelineHours.map(hour => (
+          <View key={hour} style={styles.hourContainer}>
+            <Text style={styles.hourLabel}>{hour}:00</Text>
+            <View style={styles.hourLine} />
+          </View>
+        ))}
+        <View style={[styles.scheduleItemsContainer, { left: 48, right: 0 }]}>
+          <View style={{ flex: 1, position: 'relative' }}>
+            {filteredActualSchedule.map((item, index) => {
+              const { top, height } = calculatePosition(item);
+              return (
+                <View key={index} style={[styles.scheduleItem, { top, height, backgroundColor: item.color.bg, borderColor: item.color.border }, item.current && styles.currentItem]}>
+                  <Text style={styles.scheduleItemTitle}>{item.title}</Text>
+                </View>
+              );
+            })}
+          </View>
+        </View>
+      </View>
+    </View>
+  );
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
@@ -104,32 +222,49 @@ export default function CalendarScreen() {
 
         <View style={styles.calendarGrid}>
           {Array.from({ length: startingDayOfWeek }).map((_, index) => (
-            <View key={`empty-${index}`} style={styles.dayCell} />
+            <View key={`empty-${index}`} style={styles.emptyDayCell} />
           ))}
           {Array.from({ length: daysInMonth }).map((_, index) => {
             const day = index + 1;
-            const isToday = day === today;
-            const isSelected = day === selectedDay;
-            const hasActivity = activityDays.includes(day);
+            const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
+            const dateString = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+            const activityCount = activityMap.get(dateString) || 0;
+
+            const isToday = date.toDateString() === today.toDateString();
+            const isSelected = date.toDateString() === selectedDate.toDateString();
+
+            const accessibilityLabel = `${date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}, ${activityCount} events`;
+
+            let activityStyle = {};
+            if (activityCount > 0) {
+              if (activityCount >= 3) {
+                activityStyle = styles.activityCellHigh;
+              } else {
+                activityStyle = styles.activityCellLow;
+              }
+            }
 
             return (
-              <Pressable
-                key={day}
-                onPress={() => setSelectedDay(day)}
-                style={[styles.dayCell, 
-                  isToday && styles.todayCell, 
-                  isSelected && styles.selectedCell,
-                  hasActivity && !isToday && !isSelected && styles.activityCell
-                ]}
-              >
-                <Text style={[
-                  styles.dayText,
-                  isToday && styles.todayText,
-                  isSelected && styles.selectedText,
-                  hasActivity && !isToday && !isSelected && styles.activityText
-                ]}>{day}</Text>
-                {hasActivity && !isToday && !isSelected && <View style={styles.activityDot} />}
-              </Pressable>
+              <View key={day} style={{ height: 56, width: '14.28%', justifyContent: 'center', alignItems: 'center' }}>
+                <Pressable
+                  onPress={() => setSelectedDate(date)}
+                  style={[
+                    styles.dayCell,
+                    isToday && styles.todayCell,
+                    isSelected && styles.selectedCell,
+                    !isToday && !isSelected && activityStyle,
+                  ]}
+                  accessibilityLabel={accessibilityLabel}
+                  hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+                >
+                  <Text style={[
+                    styles.dayText,
+                    isToday && styles.todayText,
+                    isSelected && styles.selectedText,
+                  ]}>{day}</Text>
+                  {(isToday || isSelected) && <View style={[styles.activityDot, isToday ? styles.todayDot : styles.selectedDot]} />}
+                </Pressable>
+              </View>
             );
           })}
         </View>
@@ -137,38 +272,16 @@ export default function CalendarScreen() {
 
       <View style={{ marginTop: 16 }}>
         <Text style={styles.headerTitle}>{selectedDateString}</Text>
-        <View style={styles.timelineContainer}>
-          <View style={{ height: timelineHours.length * 60 }}>
-            {timelineHours.map(hour => (
-              <View key={hour} style={{ height: 60, flexDirection: 'row', alignItems: 'flex-start' }}>
-                <Text style={{ width: 48, color: '#94a3b8', fontSize: 12, top: -6 }}>{hour}:00</Text>
-                <View style={{ flex: 1, height: 1, backgroundColor: '#e2e8f0' }} />
-              </View>
-            ))}
-            <View style={{ position: 'absolute', top: 0, left: 48, right: 0, bottom: 0, flexDirection: 'row' }}>
-              <View style={{ flex: 1, position: 'relative' }}>
-                {plannedSchedule.map((item, index) => {
-                  const { top, height } = calculatePosition(item);
-                  return (
-                    <View key={index} style={{ position: 'absolute', left: 4, right: 4, top, height, backgroundColor: item.color.bg, borderColor: item.color.border, borderWidth: 1, borderRadius: 8, padding: 8 }}>
-                      <Text style={{ fontSize: 12, fontWeight: 'bold' }}>{item.title}</Text>
-                    </View>
-                  );
-                })}
-              </View>
-              <View style={{ flex: 1, position: 'relative' }}>
-                {actualSchedule.map((item, index) => {
-                  const { top, height } = calculatePosition(item);
-                  return (
-                    <View key={index} style={{ position: 'absolute', left: 4, right: 4, top, height, backgroundColor: item.color.bg, borderColor: item.color.border, borderWidth: 1, borderRadius: 8, padding: 8 }}>
-                      <Text style={{ fontSize: 12, fontWeight: 'bold' }}>{item.title}</Text>
-                    </View>
-                  );
-                })}
-              </View>
-            </View>
-          </View>
+        <View style={styles.tabsContainer}>
+          <Pressable style={[styles.tab, activeTab === 'comparison' && styles.activeTab]} onPress={() => setActiveTab('comparison')}>
+            <Text style={[styles.tabText, activeTab === 'comparison' && styles.activeTabText]}>比較表示</Text>
+          </Pressable>
+          <Pressable style={[styles.tab, activeTab === 'single' && styles.activeTab]} onPress={() => setActiveTab('single')}>
+            <Text style={[styles.tabText, activeTab === 'single' && styles.activeTabText]}>実際のみ</Text>
+          </Pressable>
         </View>
+
+        {activeTab === 'comparison' ? <ComparisonTimeline /> : <SingleTimeline />}
       </View>
 
     </ScrollView>
@@ -189,15 +302,31 @@ const styles = StyleSheet.create({
   dayHeaders: { flexDirection: 'row', justifyContent: 'space-around', marginBottom: 8 },
   dayHeader: { width: '14.28%', alignItems: 'center' },
   dayHeaderText: { fontSize: 12, color: '#64748b' },
-  calendarGrid: { flexDirection: 'row', flexWrap: 'wrap' },
-  dayCell: { width: '14.28%', aspectRatio: 1, justifyContent: 'center', alignItems: 'center', borderRadius: 12 },
-  dayText: { fontSize: 14, color: '#334155' },
+  calendarGrid: { flexDirection: 'row', flexWrap: 'wrap', rowGap: 8 },
+  emptyDayCell: { height: 0, width: '14.28%' },
+  dayCell: { width: '100%', height: 56, justifyContent: 'center', alignItems: 'center', borderRadius: 999, paddingVertical: 2 },
+  dayText: { fontSize: 18, fontWeight: '400', color: '#334155' },
   todayCell: { backgroundColor: '#2563eb' },
   todayText: { color: 'white' },
   selectedCell: { backgroundColor: '#7c3aed' },
   selectedText: { color: 'white' },
-  activityCell: { backgroundColor: '#eff6ff' },
-  activityText: { color: '#1e293b' },
-  activityDot: { width: 4, height: 4, borderRadius: 2, backgroundColor: '#2563eb', marginTop: 2 },
+  activityCellLow: { backgroundColor: '#eef6ff' },
+  activityCellHigh: { backgroundColor: '#dbeafe' },
+  activityDot: { width: 4, height: 4, borderRadius: 2, marginTop: 6 },
+  todayDot: { backgroundColor: '#2563eb' },
+  selectedDot: { backgroundColor: '#7c3aed' },
   card: { backgroundColor: 'white', borderRadius: 8, padding: 16, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.20, shadowRadius: 1.41, elevation: 2 },
+  tabsContainer: { flexDirection: 'row', backgroundColor: '#e2e8f0', borderRadius: 12, padding: 4, marginBottom: 16 },
+  tab: { flex: 1, paddingVertical: 8, borderRadius: 8 },
+  activeTab: { backgroundColor: 'white' },
+  tabText: { textAlign: 'center', color: '#475569' },
+  activeTabText: { color: '#1e293b', fontWeight: 'bold' },
+  timelineHeaderText: { color: '#64748b', fontSize: 12 },
+  hourContainer: { height: 80, flexDirection: 'row', alignItems: 'flex-start' },
+  hourLabel: { width: 48, color: '#94a3b8', fontSize: 12, top: -6 },
+  hourLine: { flex: 1, height: 1, backgroundColor: '#e2e8f0' },
+  scheduleItemsContainer: { position: 'absolute', top: 0, left: 48, right: 0, bottom: 0, flexDirection: 'row' },
+  scheduleItem: { position: 'absolute', left: 4, right: 4, borderRadius: 8, padding: 8, borderWidth: 1 },
+  scheduleItemTitle: { fontSize: 12, fontWeight: 'bold' },
+  currentItem: { borderWidth: 2, borderColor: '#2563eb' },
 });
