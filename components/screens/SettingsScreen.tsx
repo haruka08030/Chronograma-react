@@ -1,6 +1,7 @@
+import { Bell, ChevronRight, LogOut, Palette, Shield, User } from 'lucide-react-native';
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable, Switch } from 'react-native';
-import { Bell, Calendar, Cloud, Palette, User, Shield, HelpCircle, ChevronRight, LogOut } from 'lucide-react-native';
+import { Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
+import useLocalization from '../hooks/useLocalization';
 
 const Card = ({ children, style }: { children: React.ReactNode, style?: any }) => (
   <View style={[styles.card, style]}>{children}</View>
@@ -21,23 +22,24 @@ interface SettingsSection {
 }
 
 export default function SettingsScreen() {
+  const { t } = useLocalization();
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
 
   const toggleNotifications = () => setNotificationsEnabled(previousState => !previousState);
 
   const settingsSections: SettingsSection[] = [
     {
-      title: 'Account',
+      title: t('settings.account'),
       items: [
-        { icon: User, label: 'Profile', value: 'John Doe', hasChevron: true },
-        { icon: Shield, label: 'Privacy & Security', hasChevron: true },
+        { icon: User, label: t('settings.profile'), value: 'John Doe', hasChevron: true },
+        { icon: Shield, label: t('settings.privacy'), hasChevron: true },
       ],
     },
     {
-      title: 'Preferences',
+      title: t('settings.preferences'),
       items: [
-        { icon: Palette, label: 'Theme', value: 'Light', hasChevron: true },
-        { icon: Bell, label: 'Notifications', hasSwitch: true, enabled: true },
+        { icon: Palette, label: t('settings.theme'), value: t('settings.light'), hasChevron: true },
+        { icon: Bell, label: t('settings.notifications'), hasSwitch: true, enabled: true },
       ],
     },
   ];
@@ -46,8 +48,8 @@ export default function SettingsScreen() {
     <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
       {/* Header */}
       <View style={styles.headerContainer}>
-        <Text style={styles.headerTitle}>Settings</Text>
-        <Text style={styles.headerSubtitle}>Manage your preferences</Text>
+        <Text style={styles.headerTitle}>{t('settings.title')}</Text>
+        <Text style={styles.headerSubtitle}>{t('settings.subtitle')}</Text>
       </View>
 
       {/* Profile Card */}
@@ -91,7 +93,7 @@ export default function SettingsScreen() {
       {/* Logout Button */}
       <Pressable style={styles.logoutButton}>
         <LogOut color="#ef4444" width={20} height={20} />
-        <Text style={styles.logoutButtonText}>Log Out</Text>
+        <Text style={styles.logoutButtonText}>{t('settings.logout')}</Text>
       </Pressable>
 
     </ScrollView>

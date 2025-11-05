@@ -1,8 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
-import { ChevronLeft, ChevronRight, Download } from 'lucide-react-native';
+import { ChevronLeft, ChevronRight } from 'lucide-react-native';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
+
+import { z } from 'zod';
+import useLocalization from '../hooks/useLocalization';
+import { ScheduleItemSchema } from '../schemas';
 
 const Card = ({ children, style }: { children: React.ReactNode, style?: any }) => (
   <View style={[styles.card, style]}>{children}</View>
@@ -49,6 +53,7 @@ export default function CalendarScreen() {
   const [currentMonth, setCurrentMonth] = useState(new Date(2025, 10));
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [activeTab, setActiveTab] = useState('comparison');
+  const { t } = useLocalization();
 
   useEffect(() => {
     loadSchedules();
@@ -59,93 +64,61 @@ export default function CalendarScreen() {
       const storedPlannedSchedule = await AsyncStorage.getItem('plannedSchedule');
       if (storedPlannedSchedule !== null) {
         const parsed = JSON.parse(storedPlannedSchedule);
-        const migrated = parsed.map((item: any) => {
-          if (item.time) {
-            const date = new Date(item.time);
-            return {
-              ...item,
-              dateISO: date.toISOString().split('T')[0],
-              startTime: `${date.getHours()}:${date.getMinutes()}`,
-              durationMin: durationToMinutes(item.duration),
-            };
-          }
-          return item;
-        });
-        setPlannedSchedule(migrated);
+        const validated = z.array(ScheduleItemSchema).safeParse(parsed);
+        if (validated.success) {
+          setPlannedSchedule(validated.data);
+        } else {
+          console.error('Invalid planned schedule data:', validated.error);
+        }
       }
       const storedActualSchedule = await AsyncStorage.getItem('actualSchedule');
       if (storedActualSchedule !== null) {
         const parsed = JSON.parse(storedActualSchedule);
-        const migrated = parsed.map((item: any) => {
-          if (item.time) {
-            const date = new Date(item.time);
-            return {
-              ...item,
-              dateISO: date.toISOString().split('T')[0],
-              startTime: `${date.getHours()}:${date.getMinutes()}`,
-              durationMin: durationToMinutes(item.duration),
-            };
-          }
-          return item;
-        });
-        setActualSchedule(migrated);
+        const validated = z.array(ScheduleItemSchema).safeParse(parsed);
+        if (validated.success) {
+          setActualSchedule(validated.data);
+        } else {
+          console.error('Invalid actual schedule data:', validated.error);
+        }
       }
     } catch (error) {
       console.error('Failed to load schedules.', error);
     }
   };
 
-  const [activityMap, setActivityMap] = useState<Map<string, number>>(new Map());
-
-  useEffect(() => {
+  const activityMap = useMemo(() => {
     const newActivityMap = new Map<string, number>();
     [...plannedSchedule, ...actualSchedule].forEach(item => {
       const count = newActivityMap.get(item.dateISO) || 0;
       newActivityMap.set(item.dateISO, count + 1);
     });
-    setActivityMap(newActivityMap);
+    return newActivityMap;
   }, [plannedSchedule, actualSchedule]);
 
-  const monthName = currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-  const selectedDateString = selectedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-
-  const { daysInMonth, startingDayOfWeek } = getDaysInMonth(currentMonth);
-
-  function getDaysInMonth(date: Date) {
-    const year = date.getFullYear();
-    const month = date.getMonth();
-    const firstDay = new Date(year, month, 1);
-    const lastDay = new Date(year, month + 1, 0);
-    const daysInMonth = lastDay.getDate();
-    const startingDayOfWeek = firstDay.getDay();
-    return { daysInMonth, startingDayOfWeek };
-  }
-
-  const previousMonth = () => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1));
-  const nextMonth = () => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1));
-
-  const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-  const today = new Date();
-
-  const [filteredPlannedSchedule, setFilteredPlannedSchedule] = useState<ScheduleItem[]>([]);
-  const [filteredActualSchedule, setFilteredActualSchedule] = useState<ScheduleItem[]>([]);
-
-  useEffect(() => {
+  const { filteredPlannedSchedule, filteredActualSchedule } = useMemo(() => {
     const selectedDateString = selectedDate.toISOString().split('T')[0];
     const filteredPlanned = plannedSchedule.filter(item => item.dateISO === selectedDateString);
-    setFilteredPlannedSchedule(filteredPlanned);
-
     const filteredActual = actualSchedule.filter(item => item.dateISO === selectedDateString);
-    setFilteredActualSchedule(filteredActual);
+    return { filteredPlannedSchedule: filteredPlanned, filteredActualSchedule: filteredActual };
   }, [selectedDate, plannedSchedule, actualSchedule]);
+
+  // small helpers for month navigation and calendar rendering
+  const today = new Date();
+  const monthName = currentMonth.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+  const previousMonth = () => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1));
+  const nextMonth = () => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1));
+  const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const startingDayOfWeek = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1).getDay();
+  const daysInMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0).getDate();
+  const selectedDateString = selectedDate.toLocaleDateString();
 
   const ComparisonTimeline = () => (
     <View style={styles.timelineContainer}>
       <View style={{ flexDirection: 'row', marginBottom: 12 }}>
         <View style={{ width: 48 }} />
         <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-around' }}>
-          <Text style={styles.timelineHeaderText}>理想</Text>
-          <Text style={styles.timelineHeaderText}>実際</Text>
+          <Text style={styles.timelineHeaderText}>{t('calendar.ideal')}</Text>
+          <Text style={styles.timelineHeaderText}>{t('calendar.actual')}</Text>
         </View>
       </View>
       <View style={{ height: timelineHours.length * 80 }}>
@@ -209,8 +182,8 @@ export default function CalendarScreen() {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
       <View style={styles.headerContainer}>
-        <Text style={styles.headerTitle}>Calendar</Text>
-        <Text style={styles.headerSubtitle}>Track your schedule and progress</Text>
+        <Text style={styles.headerTitle}>{t('calendar.title')}</Text>
+        <Text style={styles.headerSubtitle}>{t('calendar.subtitle')}</Text>
       </View>
 
       <Card style={styles.calendarCard}>
@@ -286,10 +259,10 @@ export default function CalendarScreen() {
         <Text style={styles.headerTitle}>{selectedDateString}</Text>
         <View style={styles.tabsContainer}>
           <Pressable style={[styles.tab, activeTab === 'comparison' && styles.activeTab]} onPress={() => setActiveTab('comparison')}>
-            <Text style={[styles.tabText, activeTab === 'comparison' && styles.activeTabText]}>比較表示</Text>
+            <Text style={[styles.tabText, activeTab === 'comparison' && styles.activeTabText]}>{t('calendar.comparison')}</Text>
           </Pressable>
           <Pressable style={[styles.tab, activeTab === 'single' && styles.activeTab]} onPress={() => setActiveTab('single')}>
-            <Text style={[styles.tabText, activeTab === 'single' && styles.activeTabText]}>実際のみ</Text>
+            <Text style={[styles.tabText, activeTab === 'single' && styles.activeTabText]}>{t('calendar.single')}</Text>
           </Pressable>
         </View>
 

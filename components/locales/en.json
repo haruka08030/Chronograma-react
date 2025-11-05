@@ -1,0 +1,88 @@
+{
+  "calendar": {
+    "title": "Calendar",
+    "subtitle": "Track your schedule and progress",
+    "ideal": "Ideal",
+    "actual": "Real",
+    "comparison": "Comparison",
+    "single": "Real Only"
+  },
+  "habits": {
+    "title": "Habits",
+    "subtitle": "Build consistency, track progress",
+    "thisWeek": "This Week",
+    "complete": "% Complete",
+    "yourHabits": "Your Habits",
+    "dayStreak": "day streak",
+    "addHabit": "Add a habit to start tracking your progress",
+    "activeHabits": "Active Habits",
+    "weeklyRate": "Weekly Rate",
+    "longestStreak": "Longest Streak",
+    "editHabit": "Edit Habit",
+    "addHabitTitle": "Add Habit",
+    "habitName": "Habit Name",
+    "time": "Time",
+    "icon": "Icon",
+    "color": "Color",
+    "update": "Update",
+    "add": "Add",
+    "delete": "Delete",
+    "morning": "Morning",
+    "study": "Study",
+    "workout": "Workout",
+    "meal": "Meal",
+    "work": "Work",
+    "reading": "Reading",
+    "sleep": "Sleep"
+  },
+  "todo": {
+    "title": "To-Do List",
+    "remaining": "tasks remaining",
+    "activeTasks": "Active Tasks",
+    "completed": "Completed",
+    "addTask": "Add Task",
+    "taskName": "Task Name",
+    "dueDate": "Due Date",
+    "priority": "Priority",
+    "folder": "Folder",
+    "updateTask": "Update Task",
+    "deleteTask": "Delete Task",
+    "all": "All",
+    "school": "School",
+    "work": "Work",
+    "personal": "Personal",
+    "health": "Health"
+  },
+  "settings": {
+    "title": "Settings",
+    "subtitle": "Manage your preferences",
+    "account": "Account",
+    "profile": "Profile",
+    "privacy": "Privacy & Security",
+    "preferences": "Preferences",
+    "theme": "Theme",
+    "notifications": "Notifications",
+    "light": "Light",
+    "logout": "Log Out"
+  },
+  "today": {
+    "progress": "Today's Progress"
+  },
+  "nav": {
+    "today": "Today",
+    "calendar": "Calendar",
+    "todo": "To-Do",
+    "habits": "Habits",
+    "settings": "Settings"
+  },
+  "common": {
+    "cancel": "Cancel",
+    "ok": "OK",
+    "titlePlaceholder": "Title",
+    "startTimePlaceholder": "Start Time (e.g., 10:00)",
+    "durationPlaceholder": "Duration (in minutes)",
+    "actualSchedule": "Actual Schedule",
+    "deleteScheduleTitle": "Delete Schedule Item",
+    "deleteScheduleMessage": "Are you sure you want to delete this item?"
+  }
+}

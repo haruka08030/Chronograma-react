@@ -1,0 +1,88 @@
+{
+  "calendar": {
+    "title": "カレンダー",
+    "subtitle": "スケジュールと進捗を追跡する",
+    "ideal": "理想",
+    "actual": "実際",
+    "comparison": "比較表示",
+    "single": "実際のみ"
+  },
+  "habits": {
+    "title": "習慣",
+    "subtitle": "一貫性を築き、進捗を追跡する",
+    "thisWeek": "今週",
+    "complete": "% 完了",
+    "yourHabits": "あなたの習慣",
+    "dayStreak": "日連続",
+    "addHabit": "習慣を追加して、進捗を追跡しましょう",
+    "activeHabits": "アクティブな習慣",
+    "weeklyRate": "週間達成率",
+    "longestStreak": "最長連続",
+    "editHabit": "習慣編集",
+    "addHabitTitle": "習慣追加",
+    "habitName": "習慣名",
+    "time": "時刻",
+    "icon": "アイコン",
+    "color": "色",
+    "update": "更新",
+    "add": "追加",
+    "delete": "削除",
+    "morning": "朝",
+    "study": "勉強",
+    "workout": "運動",
+    "meal": "食事",
+    "work": "作業",
+    "reading": "読書",
+    "sleep": "睡眠"
+  },
+  "todo": {
+    "title": "To-Doリスト",
+    "remaining": "タスク残り",
+    "activeTasks": "アクティブなタスク",
+    "completed": "完了",
+    "addTask": "タスク追加",
+    "taskName": "タスク名",
+    "dueDate": "期限",
+    "priority": "優先度",
+    "folder": "フォルダ",
+    "updateTask": "タスクを更新",
+    "deleteTask": "タスクを削除",
+    "all": "すべて",
+    "school": "学校",
+    "work": "仕事",
+    "personal": "個人",
+    "health": "健康"
+  },
+  "settings": {
+    "title": "設定",
+    "subtitle": "設定を管理する",
+    "account": "アカウント",
+    "profile": "プロフィール",
+    "privacy": "プライバシーとセキュリティ",
+    "preferences": "好み",
+    "theme": "テーマ",
+    "notifications": "通知",
+    "light": "ライト",
+    "logout": "ログアウト"
+  },
+  "today": {
+    "progress": "今日の進捗"
+  },
+  "nav": {
+    "today": "今日",
+    "calendar": "カレンダー",
+    "todo": "To-Do",
+    "habits": "習慣",
+    "settings": "設定"
+  },
+  "common": {
+    "cancel": "キャンセル",
+    "ok": "OK",
+    "titlePlaceholder": "タイトル",
+    "startTimePlaceholder": "開始時刻（例: 10:00）",
+    "durationPlaceholder": "所要時間（分）",
+    "actualSchedule": "実際のスケジュール",
+    "deleteScheduleTitle": "スケジュールを削除",
+    "deleteScheduleMessage": "この項目を削除してもよろしいですか？"
+  }
+}

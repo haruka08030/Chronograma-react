@@ -1,8 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable, Modal, TextInput, Button, Alert } from 'react-native';
-import { Sunrise, BookOpen, Dumbbell, Utensils, Moon, Code, Coffee, Plus, Edit2, Trash2 } from 'lucide-react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Picker } from '@react-native-picker/picker';
+import { BookOpen, Code, Coffee, Dumbbell, Edit2, Moon, Plus, Sunrise, Trash2, Utensils } from 'lucide-react-native';
+import React, { useEffect, useState } from 'react';
+import { Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+
+import { z } from 'zod';
+import useLocalization from '../hooks/useLocalization';
+import { HabitSchema } from '../schemas';
 
 const Card = ({ children, style }: { children: React.ReactNode, style?: any }) => (
   <View style={[styles.card, style]}>{children}</View>
@@ -53,6 +57,7 @@ const iconMap: { [key: string]: React.FC<any> } = {
 
 
 export default function HabitsScreen() {
+  const { t } = useLocalization();
 
   const [habits, setHabits] = useState<Habit[]>([]);
 
@@ -78,39 +83,39 @@ export default function HabitsScreen() {
 
 
 
-    const colorOptions = [
+  const colorOptions = [
 
 
 
-      { label: 'Purple', bg: '#f5f3ff', text: '#7c3aed' },
+    { label: 'Purple', bg: '#f5f3ff', text: '#7c3aed' },
 
 
 
-      { label: 'Blue', bg: '#eff6ff', text: '#2563eb' },
+    { label: 'Blue', bg: '#eff6ff', text: '#2563eb' },
 
 
 
-      { label: 'Rose', bg: '#fef2f2', text: '#ef4444' },
+    { label: 'Rose', bg: '#fef2f2', text: '#ef4444' },
 
 
 
-      { label: 'Green', bg: '#f0fdf4', text: '#22c55e' },
+    { label: 'Green', bg: '#f0fdf4', text: '#22c55e' },
 
 
 
-      { label: 'Amber', bg: '#fefce8', text: '#f59e0b' },
+    { label: 'Amber', bg: '#fefce8', text: '#f59e0b' },
 
 
 
-      { label: 'Cyan', bg: '#ecfeff', text: '#06b6d4' },
+    { label: 'Cyan', bg: '#ecfeff', text: '#06b6d4' },
 
 
 
-      { label: 'Indigo', bg: '#eef2ff', text: '#4f46e5' },
+    { label: 'Indigo', bg: '#eef2ff', text: '#4f46e5' },
 
 
 
-    ];
+  ];
 
 
 
@@ -125,15 +130,13 @@ export default function HabitsScreen() {
         const saved = await AsyncStorage.getItem('habits');
 
         if (saved) {
-          const parsedHabits = JSON.parse(saved);
-          const updatedHabits = parsedHabits.map((habit: Habit) => {
-            if (!habit.history) {
-              return { ...habit, history: habit.completion };
-            }
-            return habit;
-          });
-          setHabits(updatedHabits);
-
+          const parsed = JSON.parse(saved);
+          const validated = z.array(HabitSchema).safeParse(parsed);
+          if (validated.success) {
+            setHabits(validated.data);
+          } else {
+            console.error('Invalid habit data:', validated.error);
+          }
         }
 
         else {
@@ -410,8 +413,8 @@ export default function HabitsScreen() {
         {/* Header */}
         <View style={styles.headerContainer}>
           <View style={styles.headerTextContainer}>
-            <Text style={styles.headerTitle}>Habits</Text>
-            <Text style={styles.headerSubtitle}>Build consistency, track progress</Text>
+            <Text style={styles.headerTitle}>{t('habits.title')}</Text>
+            <Text style={styles.headerSubtitle}>{t('habits.subtitle')}</Text>
           </View>
           <Pressable onPress={() => setIsAddDialogOpen(true)} style={styles.addButton}>
             <Plus color="white" width={24} height={24} />
@@ -422,9 +425,9 @@ export default function HabitsScreen() {
         <Card style={styles.weeklyOverviewCard}>
           <View style={styles.weeklyOverviewContent}>
             <View style={styles.weeklyOverviewHeader}>
-              <Text style={styles.weeklyOverviewTitle}>This Week</Text>
+              <Text style={styles.weeklyOverviewTitle}>{t('habits.thisWeek')}</Text>
               <Badge style={styles.weeklyOverviewBadge}>
-                <Text style={styles.weeklyOverviewBadgeText}>{calculateWeeklyRate()}% Complete</Text>
+                <Text style={styles.weeklyOverviewBadgeText}>{calculateWeeklyRate()}{t('habits.complete')}</Text>
               </Badge>
             </View>
             <View style={styles.weekDaysContainer}>
@@ -446,7 +449,7 @@ export default function HabitsScreen() {
 
         {/* Habits List */}
         <View style={styles.habitsListContainer}>
-          <Text style={styles.listTitle}>Your Habits</Text>
+          <Text style={styles.listTitle}>{t('habits.yourHabits')}</Text>
           <View style={styles.habitsGrid}>
             {habits.map((habit) => {
               const Icon = iconMap[habit.icon] || Dumbbell;
@@ -469,7 +472,7 @@ export default function HabitsScreen() {
                         <Text style={styles.habitTime}>{habit.time}</Text>
                         <View style={styles.habitStatsContainer}>
                           <Badge style={styles.streakBadge}>
-                            <Text style={styles.streakText}>🔥 {streak} day streak</Text>
+                            <Text style={styles.streakText}>🔥 {streak} {t('habits.dayStreak')}</Text>
                           </Badge>
                           <Text style={styles.completionText}>{completionPercentage}%</Text>
                         </View>
@@ -510,7 +513,7 @@ export default function HabitsScreen() {
         {/* Empty State */}
         {habits.length === 0 && (
           <View style={styles.emptyStateContainer}>
-            <Text style={styles.emptyStateText}>習慣を追加して、進捗を追跡しましょう</Text>
+            <Text style={styles.emptyStateText}>{t('habits.addHabit')}</Text>
           </View>
         )}
 
@@ -520,17 +523,17 @@ export default function HabitsScreen() {
             <View style={styles.statsContent}>
               <View style={styles.statItem}>
                 <Text style={styles.statValue}>{habits.length}</Text>
-                <Text style={styles.statLabel}>Active Habits</Text>
+                <Text style={styles.statLabel}>{t('habits.activeHabits')}</Text>
               </View>
               <View style={styles.statDivider} />
               <View style={styles.statItem}>
                 <Text style={styles.statValue}>{calculateWeeklyRate()}%</Text>
-                <Text style={styles.statLabel}>Weekly Rate</Text>
+                <Text style={styles.statLabel}>{t('habits.weeklyRate')}</Text>
               </View>
               <View style={styles.statDivider} />
               <View style={styles.statItem}>
                 <Text style={styles.statValue}>{Math.max(...habits.map(h => calculateLongestStreak(h.history)), 0)}</Text>
-                <Text style={styles.statLabel}>Longest Streak</Text>
+                <Text style={styles.statLabel}>{t('habits.longestStreak')}</Text>
               </View>
             </View>
           </Card>
@@ -546,13 +549,13 @@ export default function HabitsScreen() {
         <Pressable style={styles.modalContainer} onPress={() => setIsAddDialogOpen(false)}>
           <Pressable style={styles.modalContent} onPress={(e) => e.stopPropagation()}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>{editingHabit ? '習慣編集' : '習慣追加'}</Text>
+              <Text style={styles.modalTitle}>{editingHabit ? t('habits.editHabit') : t('habits.addHabitTitle')}</Text>
               <Pressable onPress={() => setIsAddDialogOpen(false)}>
                 <Text style={styles.closeButton}>✕</Text>
               </Pressable>
             </View>
             <View style={styles.formGroup}>
-              <Text style={styles.label}>習慣名</Text>
+              <Text style={styles.label}>{t('habits.habitName')}</Text>
               <TextInput
                 style={styles.input}
                 placeholder="例: ランニング"
@@ -561,7 +564,7 @@ export default function HabitsScreen() {
               />
             </View>
             <View style={styles.formGroup}>
-              <Text style={styles.label}>時刻</Text>
+              <Text style={styles.label}>{t('habits.time')}</Text>
               <TextInput
                 style={styles.input}
                 placeholder="HH:MM AM/PM"
@@ -570,7 +573,7 @@ export default function HabitsScreen() {
               />
             </View>
             <View style={styles.formGroup}>
-              <Text style={styles.label}>アイコン</Text>
+              <Text style={styles.label}>{t('habits.icon')}</Text>
               <View style={styles.selectContainer}>
                 <Picker
                   selectedValue={formData.icon}
@@ -602,11 +605,11 @@ export default function HabitsScreen() {
               </View>
             </View>
             <Pressable onPress={handleAddHabit} style={styles.primaryButton}>
-              <Text style={styles.primaryButtonText}>{editingHabit ? '更新' : '追加'}</Text>
+              <Text style={styles.primaryButtonText}>{editingHabit ? t('habits.update') : t('habits.add')}</Text>
             </Pressable>
             {editingHabit && (
               <Pressable onPress={() => handleDelete(editingHabit.id)} style={[styles.primaryButton, styles.deleteButton]}>
-                <Text style={styles.primaryButtonText}>削除</Text>
+                <Text style={styles.primaryButtonText}>{t('habits.delete')}</Text>
               </Pressable>
             )}
           </Pressable>

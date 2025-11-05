@@ -3,6 +3,11 @@ import { Plus } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import { Alert, Button, Modal, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 
+import { z } from 'zod';
+import useLocalization from '../hooks/useLocalization';
+import { ScheduleItemSchema } from '../schemas';
+import { colors } from '../theme';
+
 interface ScheduleItem {
   id: number;
   dateISO: string;
@@ -39,6 +44,7 @@ const calculatePosition = (item: ScheduleItem) => {
 };
 
 export default function TodayScreen() {
+  const { t } = useLocalization();
   const [plannedSchedule, setPlannedSchedule] = useState<ScheduleItem[]>([]);
   const [actualSchedule, setActualSchedule] = useState<ScheduleItem[]>([]);
   const [activeTab, setActiveTab] = useState('comparison');
@@ -78,36 +84,22 @@ export default function TodayScreen() {
       const storedPlannedSchedule = await AsyncStorage.getItem('plannedSchedule');
       if (storedPlannedSchedule !== null) {
         const parsed = JSON.parse(storedPlannedSchedule);
-        const migrated = parsed.map((item: any) => {
-          if (item.time) {
-            const date = new Date(item.time);
-            return {
-              ...item,
-              dateISO: date.toISOString().split('T')[0],
-              startTime: `${date.getHours()}:${date.getMinutes()}`,
-              durationMin: durationToMinutes(item.duration),
-            };
-          }
-          return item;
-        });
-        setPlannedSchedule(migrated);
+        const validated = z.array(ScheduleItemSchema).safeParse(parsed);
+        if (validated.success) {
+          setPlannedSchedule(validated.data);
+        } else {
+          console.error('Invalid planned schedule data:', validated.error);
+        }
       }
       const storedActualSchedule = await AsyncStorage.getItem('actualSchedule');
       if (storedActualSchedule !== null) {
         const parsed = JSON.parse(storedActualSchedule);
-        const migrated = parsed.map((item: any) => {
-          if (item.time) {
-            const date = new Date(item.time);
-            return {
-              ...item,
-              dateISO: date.toISOString().split('T')[0],
-              startTime: `${date.getHours()}:${date.getMinutes()}`,
-              durationMin: durationToMinutes(item.duration),
-            };
-          }
-          return item;
-        });
-        setActualSchedule(migrated);
+        const validated = z.array(ScheduleItemSchema).safeParse(parsed);
+        if (validated.success) {
+          setActualSchedule(validated.data);
+        } else {
+          console.error('Invalid actual schedule data:', validated.error);
+        }
       }
     } catch (error) {
       console.error('Failed to load schedules.', error);
@@ -172,10 +164,10 @@ export default function TodayScreen() {
   };
 
   const deleteScheduleItem = (id: number) => {
-    Alert.alert("Delete Schedule Item", "Are you sure you want to delete this item?", [
-      { text: "Cancel", style: "cancel" },
+    Alert.alert(t('common.deleteScheduleTitle'), t('common.deleteScheduleMessage'), [
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: "OK", onPress: () => {
+        text: t('common.ok'), onPress: () => {
           setPlannedSchedule(plannedSchedule.filter(item => item.id !== id));
           setActualSchedule(actualSchedule.filter(item => item.id !== id));
         }
@@ -190,15 +182,15 @@ export default function TodayScreen() {
   };
 
   const today = new Date();
-  const dateString = today.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+  const dateString = today.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
 
   const ComparisonTimeline = () => (
     <View style={styles.timelineContainer}>
       <View style={{ flexDirection: 'row', marginBottom: 12 }}>
         <View style={{ width: 48 }} />
         <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-around' }}>
-          <Text style={styles.timelineHeaderText}>理想</Text>
-          <Text style={styles.timelineHeaderText}>実際</Text>
+          <Text style={styles.timelineHeaderText}>{t('calendar.ideal')}</Text>
+          <Text style={styles.timelineHeaderText}>{t('calendar.actual')}</Text>
         </View>
       </View>
       <View style={{ height: timelineHours.length * 80 }}>
@@ -288,7 +280,7 @@ export default function TodayScreen() {
       </View>
 
       <Card style={styles.progressCard}>
-        <Text style={styles.progressTitle}>Today's Progress</Text>
+        <Text style={styles.progressTitle}>{t('today.progress')}</Text>
         <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }}>
           <Progress value={calculateProgress()} />
           <Text style={styles.progressPercentage}>{calculateProgress()}%</Text>
@@ -298,10 +290,10 @@ export default function TodayScreen() {
       <ScrollView ref={scrollViewRef} style={styles.container} contentContainerStyle={styles.contentContainer}>
         <View style={styles.tabsContainer}>
           <Pressable style={[styles.tab, activeTab === 'comparison' && styles.activeTab]} onPress={() => setActiveTab('comparison')}>
-            <Text style={[styles.tabText, activeTab === 'comparison' && styles.activeTabText]}>比較表示</Text>
+            <Text style={[styles.tabText, activeTab === 'comparison' && styles.activeTabText]}>{t('calendar.comparison')}</Text>
           </Pressable>
           <Pressable style={[styles.tab, activeTab === 'single' && styles.activeTab]} onPress={() => setActiveTab('single')}>
-            <Text style={[styles.tabText, activeTab === 'single' && styles.activeTabText]}>実際のみ</Text>
+            <Text style={[styles.tabText, activeTab === 'single' && styles.activeTabText]}>{t('calendar.single')}</Text>
           </Pressable>
         </View>
 
@@ -312,7 +304,7 @@ export default function TodayScreen() {
       <Pressable style={styles.fab} onPress={() => {
         setSelectedSchedule(null);
         setNewScheduleTitle('');
-        setNewScheduleTime('');
+        setNewScheduleStartTime('');
         setNewScheduleDuration('');
         setModalVisible(true);
       }}>
@@ -329,29 +321,29 @@ export default function TodayScreen() {
           <Pressable style={styles.modalView} onPress={(e) => e.stopPropagation()}>
             <TextInput
               style={styles.modalTextInput}
-              placeholder="Title"
+              placeholder={t('common.titlePlaceholder')}
               value={newScheduleTitle}
               onChangeText={setNewScheduleTitle}
             />
             <TextInput
               style={styles.modalTextInput}
-              placeholder="Start Time (e.g., 10:00)"
+              placeholder={t('common.startTimePlaceholder')}
               value={newScheduleStartTime}
               onChangeText={setNewScheduleStartTime}
             />
             <TextInput
               style={styles.modalTextInput}
-              placeholder="Duration (in minutes)"
+              placeholder={t('common.durationPlaceholder')}
               value={newScheduleDuration}
               onChangeText={setNewScheduleDuration}
               keyboardType="numeric"
             />
             <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16 }}>
               <Switch value={isActual} onValueChange={setIsActual} />
-              <Text style={{ marginLeft: 8 }}>Actual Schedule</Text>
+              <Text style={{ marginLeft: 8 }}>{t('common.actualSchedule')}</Text>
             </View>
-            <Button title={selectedSchedule ? "Update" : "Add"} onPress={handleAddScheduleItem} />
-            {selectedSchedule && <Button title="Delete" onPress={() => deleteScheduleItem(selectedSchedule.id)} color="red" />}
+            <Button title={selectedSchedule ? t('habits.update') : t('habits.add')} onPress={handleAddScheduleItem} />
+            {selectedSchedule && <Button title={t('habits.delete')} onPress={() => deleteScheduleItem(selectedSchedule.id)} color="red" />}
           </Pressable>
         </Pressable>
       </Modal>
@@ -359,7 +351,6 @@ export default function TodayScreen() {
   );
 }
 
-import { colors } from '../theme';
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
