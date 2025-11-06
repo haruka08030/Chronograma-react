@@ -2,8 +2,8 @@
 import { Picker } from '@react-native-picker/picker';
 import React from 'react';
 import { Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
-import useLocalization from '../../../hooks/useLocalization';
-import { colors } from '../../../theme/theme';
+import useLocalization from '@/src/hooks/useLocalization';
+import { colors } from '@/src/theme/theme';
 
 export const HabitModal = ({
   isAddDialogOpen,

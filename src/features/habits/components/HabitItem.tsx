@@ -2,11 +2,11 @@
 import { BookOpen, Code, Coffee, Dumbbell, Edit2, Moon, Sunrise, Trash2, Utensils } from 'lucide-react-native';
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { calculateCompletion, calculateStreak } from '../service';
-import useLocalization from '../../../hooks/useLocalization';
-import { Badge } from '../../../components/ui/badge';
-import { Card } from '../../../components/ui/card';
-import { colors } from '../../../theme/theme';
+import { calculateCompletion, calculateStreak } from '@/src/features/habits/service';
+import useLocalization from '@/src/hooks/useLocalization';
+import { Badge } from '@/src/components/ui/badge';
+import { Card } from '@/src/components/ui/card';
+import { colors } from '@/src/theme/theme';
 
 const iconMap: { [key: string]: React.FC<any> } = {
   sunrise: Sunrise,

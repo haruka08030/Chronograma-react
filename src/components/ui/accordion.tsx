@@ -1,66 +1,117 @@
-"use client";
+import { ChevronDown } from 'lucide-react-native';
+import React, { createContext, useContext, useState } from 'react';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { colors } from '@/src/theme/theme';
 
-import * as React from "react";
-import * as AccordionPrimitive from "@radix-ui/react-accordion@1.2.3";
-import { ChevronDownIcon } from "lucide-react@0.487.0";
+// Collapsible context
+const CollapsibleContext = createContext<{ isOpen: boolean; setIsOpen: (isOpen: boolean) => void; } | null>(null);
 
-import { cn } from "./utils";
+const useCollapsible = () => {
+  const context = useContext(CollapsibleContext);
+  if (!context) {
+    throw new Error('useCollapsible must be used within a Collapsible');
+  }
+  return context;
+};
 
-function Accordion({
-  ...props
-}: React.ComponentProps<typeof AccordionPrimitive.Root>) {
-  return <AccordionPrimitive.Root data-slot="accordion" {...props} />;
-}
-
-function AccordionItem({
-  className,
-  ...props
-}: React.ComponentProps<typeof AccordionPrimitive.Item>) {
+const Collapsible = ({ children, defaultOpen = false }: { children: React.ReactNode, defaultOpen?: boolean }) => {
+  const [isOpen, setIsOpen] = useState(defaultOpen);
   return (
-    <AccordionPrimitive.Item
-      data-slot="accordion-item"
-      className={cn("border-b last:border-b-0", className)}
-      {...props}
-    />
+    <CollapsibleContext.Provider value={{ isOpen, setIsOpen }}>
+      <View>{children}</View>
+    </CollapsibleContext.Provider>
   );
-}
+};
 
-function AccordionTrigger({
-  className,
-  children,
-  ...props
-}: React.ComponentProps<typeof AccordionPrimitive.Trigger>) {
+const CollapsibleTrigger = ({ children }: { children: React.ReactNode }) => {
+  const { isOpen, setIsOpen } = useCollapsible();
   return (
-    <AccordionPrimitive.Header className="flex">
-      <AccordionPrimitive.Trigger
-        data-slot="accordion-trigger"
-        className={cn(
-          "focus-visible:border-ring focus-visible:ring-ring/50 flex flex-1 items-start justify-between gap-4 rounded-md py-4 text-left text-sm font-medium transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180",
-          className,
-        )}
-        {...props}
-      >
-        {children}
-        <ChevronDownIcon className="text-muted-foreground pointer-events-none size-4 shrink-0 translate-y-0.5 transition-transform duration-200" />
-      </AccordionPrimitive.Trigger>
-    </AccordionPrimitive.Header>
+    <Pressable onPress={() => setIsOpen(!isOpen)}>
+      {children}
+    </Pressable>
   );
-}
+};
 
-function AccordionContent({
-  className,
-  children,
-  ...props
-}: React.ComponentProps<typeof AccordionPrimitive.Content>) {
+const CollapsibleContent = ({ children }: { children: React.ReactNode }) => {
+  const { isOpen } = useCollapsible();
+  if (!isOpen) return null;
+  return <View>{children}</View>;
+};
+
+// Accordion context
+const AccordionContext = createContext<{ selected: string | null; setSelected: (value: string | null) => void; } | null>(null);
+
+const useAccordion = () => {
+  const context = useContext(AccordionContext);
+  if (!context) {
+    throw new Error('useAccordion must be used within an Accordion');
+  }
+  return context;
+};
+
+const Accordion = ({ children, defaultValue }: { children: React.ReactNode, defaultValue?: string }) => {
+  const [selected, setSelected] = useState<string | null>(defaultValue || null);
   return (
-    <AccordionPrimitive.Content
-      data-slot="accordion-content"
-      className="data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down overflow-hidden text-sm"
-      {...props}
-    >
-      <div className={cn("pt-0 pb-4", className)}>{children}</div>
-    </AccordionPrimitive.Content>
+    <AccordionContext.Provider value={{ selected, setSelected }}>
+      <View>{children}</View>
+    </AccordionContext.Provider>
   );
-}
+};
 
-export { Accordion, AccordionItem, AccordionTrigger, AccordionContent };
+const AccordionItem = ({ children, value }: { children: React.ReactNode, value: string }) => {
+  const { selected, setSelected } = useAccordion();
+  const isOpen = selected === value;
+
+  const contextValue = {
+    isOpen,
+    setIsOpen: (open: boolean) => setSelected(open ? value : null),
+  };
+
+  return (
+    <CollapsibleContext.Provider value={contextValue}>
+      <View style={styles.itemContainer}>{children}</View>
+    </CollapsibleContext.Provider>
+  );
+};
+
+const AccordionTrigger = ({ children }: { children: React.ReactNode }) => {
+  const { isOpen, setIsOpen } = useContext(CollapsibleContext)!;
+  return (
+    <Pressable onPress={() => setIsOpen(!isOpen)} style={styles.triggerContainer}>
+      <View style={{ flex: 1 }}>{children}</View>
+      <ChevronDown color={colors.text} style={{ transform: [{ rotate: isOpen ? '180deg' : '0deg' }] }} />
+    </Pressable>
+  );
+};
+
+const AccordionContent = ({ children }: { children: React.ReactNode }) => {
+  const { isOpen } = useContext(CollapsibleContext)!;
+  if (!isOpen) return null;
+  return <View style={styles.contentContainer}>{children}</View>;
+};
+
+const styles = StyleSheet.create({
+  itemContainer: {
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  triggerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 16,
+  },
+  contentContainer: {
+    paddingBottom: 16,
+  },
+});
+
+export {
+  Accordion,
+  AccordionItem,
+  AccordionTrigger,
+  AccordionContent,
+  Collapsible,
+  CollapsibleTrigger,
+  CollapsibleContent,
+};

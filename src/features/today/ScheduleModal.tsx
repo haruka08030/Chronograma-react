@@ -1,8 +1,8 @@
 
 import React from 'react';
 import { Button, Modal, Pressable, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
-import useLocalization from '../../hooks/useLocalization';
-import { colors } from '../../theme/theme';
+import useLocalization from '@/src/hooks/useLocalization';
+import { colors } from '@/src/theme/theme';
 
 export const ScheduleModal = ({
   modalVisible,

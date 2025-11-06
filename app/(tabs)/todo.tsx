@@ -4,12 +4,12 @@ import { Plus } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { z } from 'zod';
-import useLocalization from '../../src/hooks/useLocalization';
-import { TaskSchema } from '../../src/types/schemas';
-import { TaskItem } from '../../src/features/todo/TaskItem';
-import { TaskModal } from '../../src/features/todo/TaskModal';
-import { Card } from '../../src/components/ui/card';
-import { colors } from '../../src/theme/theme';
+import { Card } from '@/src/components/ui/card';
+import { TaskItem } from '@/src/features/todo/TaskItem';
+import { TaskModal } from '@/src/features/todo/TaskModal';
+import useLocalization from '@/src/hooks/useLocalization';
+import { colors } from '@/src/theme/theme';
+import { TaskSchema } from '@/src/types/schemas';
 
 interface Task {
   id: number;

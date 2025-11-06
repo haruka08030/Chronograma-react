@@ -5,14 +5,14 @@ import React, { useEffect, useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { z } from 'zod';
-import { Card } from '../../src/components/ui/card';
-import { Progress } from '../../src/components/ui/progress';
-import useLocalization from '../../src/hooks/useLocalization';
-import { ScheduleItemSchema } from '../../src/types/schemas';
-import { ComparisonTimeline } from '../../src/features/today/ComparisonTimeline';
-import { ScheduleModal } from '../../src/features/today/ScheduleModal';
-import { SingleTimeline } from '../../src/features/today/SingleTimeline';
-import { colors } from '../../src/theme/theme';
+import { Card } from '@/src/components/ui/card';
+import { Progress } from '@/src/components/ui/progress';
+import { ComparisonTimeline } from '@/src/features/today/ComparisonTimeline';
+import { ScheduleModal } from '@/src/features/today/ScheduleModal';
+import { SingleTimeline } from '@/src/features/today/SingleTimeline';
+import useLocalization from '@/src/hooks/useLocalization';
+import { colors } from '@/src/theme/theme';
+import { ScheduleItemSchema } from '@/src/types/schemas';
 
 interface ScheduleItem {
   id: number;
@@ -43,17 +43,27 @@ export default function TodayScreen() {
   const [newScheduleDuration, setNewScheduleDuration] = useState('');
   const [isActual, setIsActual] = useState(false);
   const scrollViewRef = React.useRef<ScrollView>(null);
+  const hasLoadedRef = React.useRef(false);
 
   useEffect(() => {
-    loadSchedules();
-    const now = new Date();
-    const currentMinutes = now.getHours() * 60 + now.getMinutes();
-    const y = ((currentMinutes - startMinutes) / 60) * 80;
-    scrollViewRef.current?.scrollTo({ y, animated: false });
+    loadSchedules().then(() => {
+      hasLoadedRef.current = true;
+    });
   }, []);
 
   useEffect(() => {
-    saveSchedules();
+    if (hasLoadedRef.current) {
+      saveSchedules();
+    }
+  }, [plannedSchedule, actualSchedule]);
+
+  useEffect(() => {
+    if (plannedSchedule.length > 0 || actualSchedule.length > 0) {
+      const now = new Date();
+      const currentMinutes = now.getHours() * 60 + now.getMinutes();
+      const y = ((currentMinutes - startMinutes) / 60) * 80;
+      scrollViewRef.current?.scrollTo({ y, animated: false });
+    }
   }, [plannedSchedule, actualSchedule]);
 
   const loadSchedules = async () => {
@@ -145,8 +155,11 @@ export default function TodayScreen() {
       { text: t('common.cancel'), style: 'cancel' },
       {
         text: t('common.ok'), onPress: () => {
-          setPlannedSchedule(plannedSchedule.filter(item => item.id !== id));
-          setActualSchedule(actualSchedule.filter(item => item.id !== id));
+          if (isActual) {
+            setActualSchedule(actualSchedule.filter(item => item.id !== id));
+          } else {
+            setPlannedSchedule(plannedSchedule.filter(item => item.id !== id));
+          }
         }
       },
     ]);
@@ -161,7 +174,7 @@ export default function TodayScreen() {
   const today = new Date();
   const dateString = today.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
 
-  const handleSelectSchedule = (item, isActual) => {
+  const handleSelectSchedule = (item: ScheduleItem, isActual: boolean) => {
     setSelectedSchedule(item);
     setIsActual(isActual);
     setModalVisible(true);
@@ -207,11 +220,11 @@ export default function TodayScreen() {
             onSelectSchedule={handleSelectSchedule}
           />
         )}
-
       </ScrollView>
 
       <Pressable style={styles.fab} onPress={() => {
         setSelectedSchedule(null);
+        setIsActual(false); // or default to actual based on activeTab
         setNewScheduleTitle('');
         setNewScheduleStartTime('');
         setNewScheduleDuration('');

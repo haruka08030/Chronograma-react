@@ -1,15 +1,17 @@
 
+import { colors } from '@/src/theme/theme';
+
 import { Plus } from 'lucide-react-native';
 import React, { useCallback, useEffect, useState } from 'react';
 import { Alert, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
-import { Habit } from '../../src/features/habits/schema';
-import { getHabits, setHabits } from '../../src/features/habits/repo';
-import { calculateWeeklyRate, getOverallLongestStreak } from '../../src/features/habits/service';
-import useLocalization from '../../src/hooks/useLocalization';
-import { HabitItem } from '../../src/features/habits/components/HabitItem';
-import { HabitModal } from '../../src/features/habits/components/HabitModal';
-import { Badge } from '../../src/components/ui/badge';
-import { Card } from '../../src/components/ui/card';
+import { Badge } from '@/src/components/ui/badge';
+import { Card } from '@/src/components/ui/card';
+import { HabitItem } from '@/src/features/habits/components/HabitItem';
+import { HabitModal } from '@/src/features/habits/components/HabitModal';
+import { getHabits, setHabits } from '@/src/features/habits/repo';
+import { Habit } from '@/src/features/habits/schema';
+import { calculateWeeklyRate, getOverallLongestStreak } from '@/src/features/habits/service';
+import useLocalization from '@/src/hooks/useLocalization';
 
 export default function HabitsScreen() {
   const { t } = useLocalization();
@@ -223,7 +225,7 @@ export default function HabitsScreen() {
 }
 
 
-import { colors } from '../../components/theme';
+
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },

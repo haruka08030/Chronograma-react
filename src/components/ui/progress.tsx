@@ -1,31 +1,33 @@
-"use client";
+import React from 'react';
+import { View, StyleSheet } from 'react-native';
+import { colors } from '@/src/theme/theme';
 
-import * as React from "react";
-import * as ProgressPrimitive from "@radix-ui/react-progress@1.1.2";
-
-import { cn } from "./utils";
-
-function Progress({
-  className,
-  value,
-  ...props
-}: React.ComponentProps<typeof ProgressPrimitive.Root>) {
-  return (
-    <ProgressPrimitive.Root
-      data-slot="progress"
-      className={cn(
-        "bg-primary/20 relative h-2 w-full overflow-hidden rounded-full",
-        className,
-      )}
-      {...props}
-    >
-      <ProgressPrimitive.Indicator
-        data-slot="progress-indicator"
-        className="bg-primary h-full w-full flex-1 transition-all"
-        style={{ transform: `translateX(-${100 - (value || 0)}%)` }}
-      />
-    </ProgressPrimitive.Root>
-  );
+interface ProgressProps {
+  value: number;
+  className?: string;
 }
+
+const Progress: React.FC<ProgressProps> = ({ value }) => {
+  return (
+    <View style={styles.progressContainer}>
+      <View style={[styles.progressBar, { width: `${value}%` }]} />
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  progressContainer: {
+    height: 8,
+    backgroundColor: colors.border,
+    borderRadius: 4,
+    overflow: 'hidden',
+    flex: 1, // Ensure it takes available space
+  },
+  progressBar: {
+    height: '100%',
+    backgroundColor: colors.primary,
+    borderRadius: 4,
+  },
+});
 
 export { Progress };

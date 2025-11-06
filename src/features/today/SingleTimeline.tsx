@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { colors } from '../../theme/theme';
+import { colors } from '@/src/theme/theme';
 
 const timelineHours = Array.from({ length: 24 }, (_, i) => i);
 

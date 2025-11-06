@@ -1,8 +1,9 @@
 
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import useLocalization from '../../hooks/useLocalization';
-import { colors } from '../../theme/theme';
+import useLocalization from '@/src/hooks/useLocalization';
+import { ScheduleItem } from '@/src/types/schemas';
+import { colors } from '@/src/theme/theme';
 
 const timelineHours = Array.from({ length: 24 }, (_, i) => i);
 
@@ -17,7 +18,7 @@ const durationToMinutes = (durationMin: number): number => {
 
 const startMinutes = 0;
 
-const calculatePosition = (item) => {
+const calculatePosition = (item: ScheduleItem) => {
   const itemMinutes = timeToMinutes(item.startTime);
   const duration = durationToMinutes(item.durationMin);
   const topPosition = ((itemMinutes - startMinutes) / 60) * 80;
@@ -25,7 +26,11 @@ const calculatePosition = (item) => {
   return { top: topPosition, height };
 };
 
-export const ComparisonTimeline = ({ plannedSchedule, actualSchedule, onSelectSchedule }) => {
+export const ComparisonTimeline: React.FC<{
+  plannedSchedule: ScheduleItem[],
+  actualSchedule: ScheduleItem[],
+  onSelectSchedule: (item: ScheduleItem, isActual: boolean) => void
+}> = ({ plannedSchedule, actualSchedule, onSelectSchedule }) => {
   const { t } = useLocalization();
 
   return (

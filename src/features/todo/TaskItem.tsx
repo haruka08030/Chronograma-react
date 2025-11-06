@@ -2,9 +2,9 @@
 import { CheckCircle2, Circle, Flag } from 'lucide-react-native';
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { Badge } from '../../components/ui/badge';
-import { Card } from '../../components/ui/card';
-import { colors } from '../../theme/theme';
+import { Badge } from '@/src/components/ui/badge';
+import { Card } from '@/src/components/ui/card';
+import { colors } from '@/src/theme/theme';
 
 export const TaskItem = ({ task, onSelectTask, onToggleTask }) => (
   <Pressable onPress={() => onSelectTask(task)}>

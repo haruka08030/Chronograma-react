@@ -4,7 +4,7 @@ export const ScheduleItemSchema = z.object({
   id: z.number(),
   dateISO: z.string(),
   startTime: z.string(),
-  durationMin: z.number(),
+  durationMin: z.number().positive(),
   title: z.string(),
   type: z.string(),
   color: z.object({

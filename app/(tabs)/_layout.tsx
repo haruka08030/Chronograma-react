@@ -3,7 +3,7 @@ import { Tabs } from 'expo-router';
 import { CalendarDays, CheckSquare, Home, Settings, TrendingUp } from 'lucide-react-native';
 import React from 'react';
 
-import useLocalization from '../../src/hooks/useLocalization';
+import useLocalization from '@/src/hooks/useLocalization';
 
 export default function TabLayout() {
   const { t } = useLocalization();

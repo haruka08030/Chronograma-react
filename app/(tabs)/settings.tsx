@@ -1,8 +1,8 @@
 import { Bell, ChevronRight, LogOut, Palette, Shield, User } from 'lucide-react-native';
 import React, { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
-import useLocalization from '../../src/hooks/useLocalization';
-import { colors } from '../../src/theme/theme';
+import useLocalization from '@/src/hooks/useLocalization';
+import { colors } from '@/src/theme/theme';
 
 const Card = ({ children, style }: { children: React.ReactNode, style?: any }) => (
   <View style={[styles.card, style]}>{children}</View>
@@ -101,7 +101,7 @@ export default function SettingsScreen() {
   );
 }
 
-import { colors } from '../theme';
+
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },

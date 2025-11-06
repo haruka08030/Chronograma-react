@@ -5,12 +5,13 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { z } from 'zod';
-import { CalendarGrid } from '../../src/features/calendar/CalendarGrid';
-import useLocalization from '../../src/hooks/useLocalization';
-import { ScheduleItemSchema } from '../../src/types/schemas';
-import { ComparisonTimeline } from '../../src/features/today/ComparisonTimeline';
-import { SingleTimeline } from '../../src/features/today/SingleTimeline';
-import { colors } from '../../src/theme/theme';
+
+import { CalendarGrid } from '@/src/features/calendar/CalendarGrid';
+import { ComparisonTimeline } from '@/src/features/today/ComparisonTimeline';
+import { SingleTimeline } from '@/src/features/today/SingleTimeline';
+import useLocalization from '@/src/hooks/useLocalization';
+import { colors } from '@/src/theme/theme';
+import { ScheduleItemSchema } from '@/src/types/schemas';
 
 interface ScheduleItem {
   id: number;
@@ -29,7 +30,7 @@ interface ScheduleItem {
 export default function CalendarScreen() {
   const [plannedSchedule, setPlannedSchedule] = useState<ScheduleItem[]>([]);
   const [actualSchedule, setActualSchedule] = useState<ScheduleItem[]>([]);
-  const [currentMonth, setCurrentMonth] = useState(new Date(2025, 10));
+  const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [activeTab, setActiveTab] = useState('comparison');
   const { t } = useLocalization();
@@ -116,12 +117,12 @@ export default function CalendarScreen() {
           <ComparisonTimeline
             plannedSchedule={filteredPlannedSchedule}
             actualSchedule={filteredActualSchedule}
-            onSelectSchedule={() => {}}
+            onSelectSchedule={() => { }}
           />
         ) : (
           <SingleTimeline
             actualSchedule={filteredActualSchedule}
-            onSelectSchedule={() => {}}
+            onSelectSchedule={() => { }}
           />
         )}
       </View>
@@ -131,7 +132,6 @@ export default function CalendarScreen() {
 }
 
 
-import { colors } from '../theme';
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
