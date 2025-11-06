@@ -131,7 +131,11 @@ export default function HabitsScreen() {
 
         if (saved) {
           const parsed = JSON.parse(saved);
-          const validated = z.array(HabitSchema).safeParse(parsed);
+          const sanitizedData = parsed.map((habit: any) => ({
+            ...habit,
+            id: String(habit.id),
+          }));
+          const validated = z.array(HabitSchema).safeParse(sanitizedData);
           if (validated.success) {
             setHabits(validated.data);
           } else {
