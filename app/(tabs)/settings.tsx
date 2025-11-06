@@ -1,6 +1,7 @@
 import { Bell, ChevronRight, LogOut, Palette, Shield, User } from 'lucide-react-native';
 import React, { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import useLocalization from '@/src/hooks/useLocalization';
 import { colors } from '@/src/theme/theme';
 
@@ -25,6 +26,7 @@ interface SettingsSection {
 export default function SettingsScreen() {
   const { t } = useLocalization();
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  const insets = useSafeAreaInsets();
 
   const toggleNotifications = () => setNotificationsEnabled(previousState => !previousState);
 
@@ -46,7 +48,7 @@ export default function SettingsScreen() {
   ];
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
+    <ScrollView style={styles.container} contentContainerStyle={[styles.contentContainer, { paddingTop: insets.top }]}>
       {/* Header */}
       <View style={styles.headerContainer}>
         <Text style={styles.headerTitle}>{t('settings.title')}</Text>

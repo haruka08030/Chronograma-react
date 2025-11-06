@@ -4,6 +4,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { z } from 'zod';
 
 import { CalendarGrid } from '@/src/features/calendar/CalendarGrid';
@@ -34,6 +35,7 @@ export default function CalendarScreen() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [activeTab, setActiveTab] = useState('comparison');
   const { t } = useLocalization();
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     loadSchedules();
@@ -87,7 +89,7 @@ export default function CalendarScreen() {
   const selectedDateString = selectedDate.toLocaleDateString();
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
+    <ScrollView style={styles.container} contentContainerStyle={[styles.contentContainer, { paddingTop: insets.top }]}>
       <View style={styles.headerContainer}>
         <Text style={styles.headerTitle}>{t('calendar.title')}</Text>
         <Text style={styles.headerSubtitle}>{t('calendar.subtitle')}</Text>

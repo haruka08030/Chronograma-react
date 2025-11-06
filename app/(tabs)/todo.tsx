@@ -2,6 +2,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Plus } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { z } from 'zod';
 import { Card } from '@/src/components/ui/card';
@@ -36,6 +37,7 @@ export default function ToDoScreen() {
   const [newPriority, setNewPriority] = useState<'high' | 'medium' | 'low'>('medium');
   const [newFolder, setNewFolder] = useState('');
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     if (selectedTask) {
@@ -156,7 +158,7 @@ export default function ToDoScreen() {
   }
 
   return (
-    <View style={{ flex: 1 }}>
+    <View style={{ flex: 1, paddingTop: insets.top }}>
       <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
         <View style={styles.headerContainer}>
           <View>

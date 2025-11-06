@@ -1,10 +1,20 @@
-import { Stack } from "expo-router";
-import { SafeAreaView } from "react-native";
+import { Stack } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
+
+import { colors } from '@/src/theme/theme';
 
 export default function RootLayout() {
   return (
-    <SafeAreaView style={{ flex: 1 }}>
-      <Stack screenOptions={{ headerShown: false }} />
-    </SafeAreaView>
+    <>
+      <StatusBar style="dark" />
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          contentStyle: {
+            backgroundColor: colors.background,
+          },
+        }}
+      />
+    </>
   );
 }

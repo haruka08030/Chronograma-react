@@ -1,9 +1,11 @@
 
-import { colors } from '@/src/theme/theme';
-
 import { Plus } from 'lucide-react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { useCallback, useEffect, useState } from 'react';
 import { Alert, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { colors } from '@/src/theme/theme';
+
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Badge } from '@/src/components/ui/badge';
 import { Card } from '@/src/components/ui/card';
 import { HabitItem } from '@/src/features/habits/components/HabitItem';
@@ -24,6 +26,7 @@ export default function HabitsScreen() {
     time: '',
     color: { bg: '#f5f3ff', text: '#7c3aed' },
   });
+  const insets = useSafeAreaInsets();
 
   const weekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
@@ -126,7 +129,7 @@ export default function HabitsScreen() {
   const keyExtractor = (item: Habit) => item.id;
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       <FlatList
         data={habits}
         renderItem={renderItem}

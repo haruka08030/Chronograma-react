@@ -4,7 +4,9 @@ import { Plus } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { z } from 'zod';
+
 import { Card } from '@/src/components/ui/card';
 import { Progress } from '@/src/components/ui/progress';
 import { ComparisonTimeline } from '@/src/features/today/ComparisonTimeline';
@@ -44,6 +46,7 @@ export default function TodayScreen() {
   const [isActual, setIsActual] = useState(false);
   const scrollViewRef = React.useRef<ScrollView>(null);
   const hasLoadedRef = React.useRef(false);
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     loadSchedules().then(() => {
@@ -181,7 +184,7 @@ export default function TodayScreen() {
   };
 
   return (
-    <View style={{ flex: 1 }}>
+    <View style={{ flex: 1, backgroundColor: colors.background, paddingTop: insets.top }}>
       <View style={styles.headerContainer}>
         <Text style={styles.headerTitle}>{dateString}</Text>
       </View>
