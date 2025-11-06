@@ -1,7 +1,7 @@
 import { Picker } from '@react-native-picker/picker';
 import { BookOpen, Code, Coffee, Dumbbell, Edit2, Moon, Plus, Sunrise, Trash2, Utensils } from 'lucide-react-native';
-import React, { useEffect, useState } from 'react';
-import { Alert, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import React, { useCallback, useEffect, useState } from 'react';
+import { Alert, FlatList, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { getHabits, setHabits } from '../../src/lib/storage';
 import { Habit } from '../../src/types/habits';
 import useLocalization from '../hooks/useLocalization';
@@ -167,138 +167,146 @@ export default function HabitsScreen() {
     setEditingHabit(null);
   };
 
+  const renderItem = useCallback(({ item }: { item: Habit }) => {
+    const Icon = iconMap[item.icon] || Dumbbell;
+    const streak = calculateStreak(item.history);
+    const longestStreak = calculateLongestStreak(item.history);
+    const completionPercentage = calculateCompletion(item.completion);
+
+    return (
+      <Card
+        style={styles.habitItemCard}
+      >
+        <View style={styles.habitItemContent}>
+          <View style={styles.habitItemHeader}>
+            <View style={[styles.habitIconBg, { backgroundColor: item.color.bg }]}>
+              {Icon && <Icon color={item.color.text} width={24} height={24} />}
+            </View>
+            <View style={styles.habitTextContainer}>
+              <Text style={styles.habitName}>{item.name}</Text>
+              <Text style={styles.habitTime}>{item.time}</Text>
+              <View style={styles.habitStatsContainer}>
+                <Badge style={styles.streakBadge}>
+                  <Text style={styles.streakText}>🔥 {streak} {t('habits.dayStreak')}</Text>
+                </Badge>
+                <Text style={styles.completionText}>{completionPercentage}%</Text>
+              </View>
+            </View>
+            <View style={styles.habitActions}>
+              <Pressable
+                onPress={() => handleEdit(item)}
+                style={styles.actionButton}
+              >
+                <Edit2 color="#2563eb" width={16} height={16} />
+              </Pressable>
+              <Pressable
+                onPress={() => handleDelete(item.id)}
+                style={styles.actionButton}
+              >
+                <Trash2 color="#ef4444" width={16} height={16} />
+              </Pressable>
+            </View>
+          </View>
+
+          {/* Weekly Progress */}
+          <View style={styles.weeklyProgressContainer}>
+            {item.completion.map((completed, index) => (
+              <Pressable
+                key={index}
+                onPress={() => toggleCompletion(item.id, index)}
+                style={[styles.progressSquare, completed ? styles.completedSquare : styles.incompleteSquare]}
+              />
+            ))}
+          </View>
+        </View>
+      </Card>
+    );
+  }, [t]);
+
+  const keyExtractor = (item: Habit) => item.id;
+
   return (
     <View style={styles.container}>
-      <ScrollView contentContainerStyle={styles.contentContainer}>
-        {/* Header */}
-        <View style={styles.headerContainer}>
-          <View style={styles.headerTextContainer}>
-            <Text style={styles.headerTitle}>{t('habits.title')}</Text>
-            <Text style={styles.headerSubtitle}>{t('habits.subtitle')}</Text>
-          </View>
-          <Pressable onPress={() => setIsAddDialogOpen(true)} style={styles.addButton}>
-            <Plus color="white" width={24} height={24} />
-          </Pressable>
-        </View>
-
-        {/* Weekly Overview */}
-        <Card style={styles.weeklyOverviewCard}>
-          <View style={styles.weeklyOverviewContent}>
-            <View style={styles.weeklyOverviewHeader}>
-              <Text style={styles.weeklyOverviewTitle}>{t('habits.thisWeek')}</Text>
-              <Badge style={styles.weeklyOverviewBadge}>
-                <Text style={styles.weeklyOverviewBadgeText}>{calculateWeeklyRate()}{t('habits.complete')}</Text>
-              </Badge>
+      <FlatList
+        data={habits}
+        renderItem={renderItem}
+        keyExtractor={keyExtractor}
+        contentContainerStyle={styles.contentContainer}
+        ListHeaderComponent={
+          <>
+            {/* Header */}
+            <View style={styles.headerContainer}>
+              <View style={styles.headerTextContainer}>
+                <Text style={styles.headerTitle}>{t('habits.title')}</Text>
+                <Text style={styles.headerSubtitle}>{t('habits.subtitle')}</Text>
+              </View>
+              <Pressable onPress={() => setIsAddDialogOpen(true)} style={styles.addButton}>
+                <Plus color="white" width={24} height={24} />
+              </Pressable>
             </View>
-            <View style={styles.weekDaysContainer}>
-              {weekDays.map((day, index) => {
-                const today = new Date().getDay();
-                const isToday = today === 0 ? index === 6 : index === today - 1;
-                return (
-                  <View
-                    key={day}
-                    style={[styles.weekDayItem, isToday ? styles.todayWeekDayItem : styles.normalWeekDayItem]}
-                  >
-                    <Text style={styles.weekDayText}>{day}</Text>
-                  </View>
-                );
-              })}
+
+            {/* Weekly Overview */}
+            <Card style={styles.weeklyOverviewCard}>
+              <View style={styles.weeklyOverviewContent}>
+                <View style={styles.weeklyOverviewHeader}>
+                  <Text style={styles.weeklyOverviewTitle}>{t('habits.thisWeek')}</Text>
+                  <Badge style={styles.weeklyOverviewBadge}>
+                    <Text style={styles.weeklyOverviewBadgeText}>{calculateWeeklyRate()}{t('habits.complete')}</Text>
+                  </Badge>
+                </View>
+                <View style={styles.weekDaysContainer}>
+                  {weekDays.map((day, index) => {
+                    const today = new Date().getDay();
+                    const isToday = today === 0 ? index === 6 : index === today - 1;
+                    return (
+                      <View
+                        key={day}
+                        style={[styles.weekDayItem, isToday ? styles.todayWeekDayItem : styles.normalWeekDayItem]}
+                      >
+                        <Text style={styles.weekDayText}>{day}</Text>
+                      </View>
+                    );
+                  })}
+                </View>
+              </View>
+            </Card>
+
+            {/* Habits List */}
+            <View style={styles.habitsListContainer}>
+              <Text style={styles.listTitle}>{t('habits.yourHabits')}</Text>
             </View>
-          </View>
-        </Card>
-
-        {/* Habits List */}
-        <View style={styles.habitsListContainer}>
-          <Text style={styles.listTitle}>{t('habits.yourHabits')}</Text>
-          <View style={styles.habitsGrid}>
-            {habits.map((habit) => {
-              const Icon = iconMap[habit.icon] || Dumbbell;
-              const streak = calculateStreak(habit.history);
-              const longestStreak = calculateLongestStreak(habit.history);
-              const completionPercentage = calculateCompletion(habit.completion);
-
-              return (
-                <Card
-                  key={habit.id}
-                  style={styles.habitItemCard}
-                >
-                  <View style={styles.habitItemContent}>
-                    <View style={styles.habitItemHeader}>
-                      <View style={[styles.habitIconBg, { backgroundColor: habit.color.bg }]}>
-                        {Icon && <Icon color={habit.color.text} width={24} height={24} />}
-                      </View>
-                      <View style={styles.habitTextContainer}>
-                        <Text style={styles.habitName}>{habit.name}</Text>
-                        <Text style={styles.habitTime}>{habit.time}</Text>
-                        <View style={styles.habitStatsContainer}>
-                          <Badge style={styles.streakBadge}>
-                            <Text style={styles.streakText}>🔥 {streak} {t('habits.dayStreak')}</Text>
-                          </Badge>
-                          <Text style={styles.completionText}>{completionPercentage}%</Text>
-                        </View>
-                      </View>
-                      <View style={styles.habitActions}>
-                        <Pressable
-                          onPress={() => handleEdit(habit)}
-                          style={styles.actionButton}
-                        >
-                          <Edit2 color="#2563eb" width={16} height={16} />
-                        </Pressable>
-                        <Pressable
-                          onPress={() => handleDelete(habit.id)}
-                          style={styles.actionButton}
-                        >
-                          <Trash2 color="#ef4444" width={16} height={16} />
-                        </Pressable>
-                      </View>
-                    </View>
-
-                    {/* Weekly Progress */}
-                    <View style={styles.weeklyProgressContainer}>
-                      {habit.completion.map((completed, index) => (
-                        <Pressable
-                          key={index}
-                          onPress={() => toggleCompletion(habit.id, index)}
-                          style={[styles.progressSquare, completed ? styles.completedSquare : styles.incompleteSquare]}
-                        />
-                      ))}
-                    </View>
-                  </View>
-                </Card>
-              );
-            })}
-          </View>
-        </View>
-
-        {/* Empty State */}
-        {habits.length === 0 && (
+          </>
+        }
+        ListEmptyComponent={
           <View style={styles.emptyStateContainer}>
             <Text style={styles.emptyStateText}>{t('habits.addHabit')}</Text>
           </View>
-        )}
-
-        {/* Stats Card */}
-        {habits.length > 0 && (
-          <Card style={styles.statsCard}>
-            <View style={styles.statsContent}>
-              <View style={styles.statItem}>
-                <Text style={styles.statValue}>{habits.length}</Text>
-                <Text style={styles.statLabel}>{t('habits.activeHabits')}</Text>
-              </View>
-              <View style={styles.statDivider} />
-              <View style={styles.statItem}>
-                <Text style={styles.statValue}>{calculateWeeklyRate()}%</Text>
-                <Text style={styles.statLabel}>{t('habits.weeklyRate')}</Text>
-              </View>
-              <View style={styles.statDivider} />
-              <View style={styles.statItem}>
-                <Text style={styles.statValue}>{Math.max(...habits.map(h => calculateLongestStreak(h.history)), 0)}</Text>
-                <Text style={styles.statLabel}>{t('habits.longestStreak')}</Text>
-              </View>
-            </View>
-          </Card>
-        )}
-      </ScrollView>
+        }
+        ListFooterComponent={
+          <>
+            {habits.length > 0 && (
+              <Card style={styles.statsCard}>
+                <View style={styles.statsContent}>
+                  <View style={styles.statItem}>
+                    <Text style={styles.statValue}>{habits.length}</Text>
+                    <Text style={styles.statLabel}>{t('habits.activeHabits')}</Text>
+                  </View>
+                  <View style={styles.statDivider} />
+                  <View style={styles.statItem}>
+                    <Text style={styles.statValue}>{calculateWeeklyRate()}%</Text>
+                    <Text style={styles.statLabel}>{t('habits.weeklyRate')}</Text>
+                  </View>
+                  <View style={styles.statDivider} />
+                  <View style={styles.statItem}>
+                    <Text style={styles.statValue}>{Math.max(...habits.map(h => calculateLongestStreak(h.history)), 0)}</Text>
+                    <Text style={styles.statLabel}>{t('habits.longestStreak')}</Text>
+                  </View>
+                </View>
+              </Card>
+            )}
+          </>
+        }
+      />
 
       <Modal
         animationType="slide"
@@ -409,7 +417,7 @@ const styles = StyleSheet.create({
   habitsListContainer: { marginBottom: 16 },
   listTitle: { fontSize: 18, fontWeight: 'bold', color: colors.text, marginBottom: 8 },
   habitsGrid: { gap: 12 },
-  habitItemCard: { padding: 16, borderRadius: 12, backgroundColor: 'white', borderColor: colors.border, borderWidth: 1, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 2 },
+  habitItemCard: { padding: 16, borderRadius: 12, backgroundColor: 'white', borderColor: colors.border, borderWidth: 1, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 2, marginBottom: 12 },
   habitItemContent: {},
   habitItemHeader: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, marginBottom: 12 },
   habitIconBg: { width: 48, height: 48, borderRadius: 12, justifyContent: 'center', alignItems: 'center', flexShrink: 0 },
