@@ -89,47 +89,49 @@ export default function CalendarScreen() {
   const selectedDateString = selectedDate.toLocaleDateString();
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={[styles.contentContainer, { paddingTop: insets.top }]}>
-      <View style={styles.headerContainer}>
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
+      <View style={[styles.headerContainer, { paddingTop: insets.top }]}>
         <Text style={styles.headerTitle}>{t('calendar.title')}</Text>
         <Text style={styles.headerSubtitle}>{t('calendar.subtitle')}</Text>
       </View>
+      <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
 
-      <CalendarGrid
-        currentMonth={currentMonth}
-        previousMonth={previousMonth}
-        nextMonth={nextMonth}
-        activityMap={activityMap}
-        selectedDate={selectedDate}
-        setSelectedDate={setSelectedDate}
-      />
+        <CalendarGrid
+          currentMonth={currentMonth}
+          previousMonth={previousMonth}
+          nextMonth={nextMonth}
+          activityMap={activityMap}
+          selectedDate={selectedDate}
+          setSelectedDate={setSelectedDate}
+        />
 
-      <View style={{ marginTop: 16 }}>
-        <Text style={styles.headerTitle}>{selectedDateString}</Text>
-        <View style={styles.tabsContainer}>
-          <Pressable style={[styles.tab, activeTab === 'comparison' && styles.activeTab]} onPress={() => setActiveTab('comparison')}>
-            <Text style={[styles.tabText, activeTab === 'comparison' && styles.activeTabText]}>{t('calendar.comparison')}</Text>
-          </Pressable>
-          <Pressable style={[styles.tab, activeTab === 'single' && styles.activeTab]} onPress={() => setActiveTab('single')}>
-            <Text style={[styles.tabText, activeTab === 'single' && styles.activeTabText]}>{t('calendar.single')}</Text>
-          </Pressable>
+        <View style={{ marginTop: 16 }}>
+          <Text style={styles.headerTitle}>{selectedDateString}</Text>
+          <View style={styles.tabsContainer}>
+            <Pressable style={[styles.tab, activeTab === 'comparison' && styles.activeTab]} onPress={() => setActiveTab('comparison')}>
+              <Text style={[styles.tabText, activeTab === 'comparison' && styles.activeTabText]}>{t('calendar.comparison')}</Text>
+            </Pressable>
+            <Pressable style={[styles.tab, activeTab === 'single' && styles.activeTab]} onPress={() => setActiveTab('single')}>
+              <Text style={[styles.tabText, activeTab === 'single' && styles.activeTabText]}>{t('calendar.single')}</Text>
+            </Pressable>
+          </View>
+
+          {activeTab === 'comparison' ? (
+            <ComparisonTimeline
+              plannedSchedule={filteredPlannedSchedule}
+              actualSchedule={filteredActualSchedule}
+              onSelectSchedule={() => { }}
+            />
+          ) : (
+            <SingleTimeline
+              actualSchedule={filteredActualSchedule}
+              onSelectSchedule={() => { }}
+            />
+          )}
         </View>
 
-        {activeTab === 'comparison' ? (
-          <ComparisonTimeline
-            plannedSchedule={filteredPlannedSchedule}
-            actualSchedule={filteredActualSchedule}
-            onSelectSchedule={() => { }}
-          />
-        ) : (
-          <SingleTimeline
-            actualSchedule={filteredActualSchedule}
-            onSelectSchedule={() => { }}
-          />
-        )}
-      </View>
-
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }
 
@@ -138,7 +140,7 @@ export default function CalendarScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   contentContainer: { padding: 16 },
-  headerContainer: { marginBottom: 16 },
+  headerContainer: { marginBottom: 16, paddingHorizontal: 16 },
   headerTitle: { fontSize: 24, fontWeight: 'bold', color: colors.text },
   headerSubtitle: { fontSize: 16, color: colors.textMuted },
   calendarCard: { padding: 16, borderRadius: 16, backgroundColor: 'white', marginBottom: 16 },

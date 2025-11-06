@@ -158,14 +158,14 @@ export default function ToDoScreen() {
   }
 
   return (
-    <View style={{ flex: 1, paddingTop: insets.top }}>
-      <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-        <View style={styles.headerContainer}>
-          <View>
-            <Text style={styles.headerTitle}>{t('todo.title')}</Text>
-            <Text style={styles.headerSubtitle}>{activeTasks.length} {t('todo.remaining')}</Text>
-          </View>
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
+      <View style={[styles.headerContainer, { paddingTop: insets.top }]}>
+        <View>
+          <Text style={styles.headerTitle}>{t('todo.title')}</Text>
+          <Text style={styles.headerSubtitle}>{activeTasks.length} {t('todo.remaining')}</Text>
         </View>
+      </View>
+      <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
 
         <Card style={styles.statsCard} />
 
@@ -224,7 +224,7 @@ export default function ToDoScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   contentContainer: { padding: 16, paddingBottom: 80 },
-  headerContainer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
+  headerContainer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, paddingHorizontal: 16 },
   headerTitle: { fontSize: 24, fontWeight: 'bold', color: colors.text },
   headerSubtitle: { fontSize: 16, color: colors.textMuted },
   statsCard: { padding: 16, borderRadius: 16, backgroundColor: colors.primaryLight, marginBottom: 16 },

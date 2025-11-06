@@ -48,58 +48,59 @@ export default function SettingsScreen() {
   ];
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={[styles.contentContainer, { paddingTop: insets.top }]}>
-      {/* Header */}
-      <View style={styles.headerContainer}>
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
+      <View style={[styles.headerContainer, { paddingTop: insets.top, paddingHorizontal: 16, marginBottom: 16 }]}>
         <Text style={styles.headerTitle}>{t('settings.title')}</Text>
         <Text style={styles.headerSubtitle}>{t('settings.subtitle')}</Text>
       </View>
+      <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
 
-      {/* Profile Card */}
-      <Card style={styles.profileCard}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>JD</Text>
+        {/* Profile Card */}
+        <Card style={styles.profileCard}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
+            <View style={styles.avatar}>
+              <Text style={styles.avatarText}>JD</Text>
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.profileName}>John Doe</Text>
+              <Text style={styles.profileEmail}>john.doe@email.com</Text>
+            </View>
           </View>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.profileName}>John Doe</Text>
-            <Text style={styles.profileEmail}>john.doe@email.com</Text>
+        </Card>
+
+        {/* Settings Sections */}
+        {settingsSections.map((section, sectionIndex) => (
+          <View key={sectionIndex} style={{ marginBottom: 16 }}>
+            <Text style={styles.sectionTitle}>{section.title}</Text>
+            <Card style={styles.settingsCard}>
+              {section.items.map((item, itemIndex) => {
+                const Icon = item.icon;
+                return (
+                  <Pressable key={itemIndex} style={styles.settingItem}>
+                    <View style={styles.settingIconContainer}>
+                      <Icon color="#475569" width={20} height={20} />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.settingLabel}>{item.label}</Text>
+                      {item.value && <Text style={styles.settingValue}>{item.value}</Text>}
+                    </View>
+                    {item.hasSwitch && <Switch value={notificationsEnabled} onValueChange={toggleNotifications} />}
+                    {item.hasChevron && <ChevronRight color="#94a3b8" width={20} height={20} />}
+                  </Pressable>
+                );
+              })}
+            </Card>
           </View>
-        </View>
-      </Card>
+        ))}
 
-      {/* Settings Sections */}
-      {settingsSections.map((section, sectionIndex) => (
-        <View key={sectionIndex} style={{ marginBottom: 16 }}>
-          <Text style={styles.sectionTitle}>{section.title}</Text>
-          <Card style={styles.settingsCard}>
-            {section.items.map((item, itemIndex) => {
-              const Icon = item.icon;
-              return (
-                <Pressable key={itemIndex} style={styles.settingItem}>
-                  <View style={styles.settingIconContainer}>
-                    <Icon color="#475569" width={20} height={20} />
-                  </View>
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.settingLabel}>{item.label}</Text>
-                    {item.value && <Text style={styles.settingValue}>{item.value}</Text>}
-                  </View>
-                  {item.hasSwitch && <Switch value={notificationsEnabled} onValueChange={toggleNotifications} />}
-                  {item.hasChevron && <ChevronRight color="#94a3b8" width={20} height={20} />}
-                </Pressable>
-              );
-            })}
-          </Card>
-        </View>
-      ))}
+        {/* Logout Button */}
+        <Pressable style={styles.logoutButton}>
+          <LogOut color="#ef4444" width={20} height={20} />
+          <Text style={styles.logoutButtonText}>{t('settings.logout')}</Text>
+        </Pressable>
 
-      {/* Logout Button */}
-      <Pressable style={styles.logoutButton}>
-        <LogOut color="#ef4444" width={20} height={20} />
-        <Text style={styles.logoutButtonText}>{t('settings.logout')}</Text>
-      </Pressable>
-
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }
 
@@ -108,7 +109,7 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   contentContainer: { padding: 16 },
-  headerContainer: { marginBottom: 16 },
+  headerContainer: { },
   headerTitle: { fontSize: 24, fontWeight: 'bold', color: colors.text },
   headerSubtitle: { fontSize: 16, color: colors.textMuted },
   profileCard: { padding: 16, borderRadius: 16, backgroundColor: colors.primaryLight, marginBottom: 16 },

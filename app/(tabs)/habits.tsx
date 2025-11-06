@@ -129,7 +129,13 @@ export default function HabitsScreen() {
   const keyExtractor = (item: Habit) => item.id;
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={[styles.headerContainer, { paddingTop: insets.top, paddingHorizontal: 16, marginBottom: 16 }]}>
+        <View style={styles.headerTextContainer}>
+          <Text style={styles.headerTitle}>{t('habits.title')}</Text>
+          <Text style={styles.headerSubtitle}>{t('habits.subtitle')}</Text>
+        </View>
+      </View>
       <FlatList
         data={habits}
         renderItem={renderItem}
@@ -137,14 +143,6 @@ export default function HabitsScreen() {
         contentContainerStyle={styles.contentContainer}
         ListHeaderComponent={
           <>
-            {/* Header */}
-            <View style={styles.headerContainer}>
-              <View style={styles.headerTextContainer}>
-                <Text style={styles.headerTitle}>{t('habits.title')}</Text>
-                <Text style={styles.headerSubtitle}>{t('habits.subtitle')}</Text>
-              </View>
-            </View>
-
             {/* Weekly Overview */}
             <Card style={styles.weeklyOverviewCard}>
               <View style={styles.weeklyOverviewContent}>
@@ -235,7 +233,7 @@ const styles = StyleSheet.create({
   contentContainer: { padding: 16, paddingBottom: 80 },
 
   // Header
-  headerContainer: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 },
+  headerContainer: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   headerTextContainer: {},
   headerTitle: { fontSize: 24, fontWeight: 'bold', color: colors.text },
   headerSubtitle: { fontSize: 16, color: colors.textMuted },
