@@ -1,19 +1,15 @@
+
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { CheckCircle2, Circle, Flag, Plus } from 'lucide-react-native';
+import { Plus } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
-import { Alert, Button, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { z } from 'zod';
-import useLocalization from '../hooks/useLocalization';
-import { TaskSchema } from '../schemas';
-import { colors } from '../theme';
-
-const Card = ({ children, style }: { children: React.ReactNode, style?: any }) => (
-  <View style={[styles.card, style]}>{children}</View>
-);
-
-const Badge = ({ children, style }: { children: React.ReactNode, style?: any }) => (
-  <View style={[styles.badge, style]}>{children}</View>
-);
+import useLocalization from '../../src/hooks/useLocalization';
+import { TaskSchema } from '../../src/types/schemas';
+import { TaskItem } from '../../src/features/todo/TaskItem';
+import { TaskModal } from '../../src/features/todo/TaskModal';
+import { Card } from '../../src/components/ui/card';
+import { colors } from '../../src/theme/theme';
 
 interface Task {
   id: number;
@@ -150,37 +146,14 @@ export default function ToDoScreen() {
   };
 
   const activeTasks = tasks.filter((task: Task) => !task.completed);
-  const completedTasks = tasks.filter((task: Task) => task.completed);
   const displayTasks = getTasksByFolder(activeFolder);
   const displayActiveTasks = displayTasks.filter((task: Task) => !task.completed);
   const displayCompletedTasks = displayTasks.filter((task: Task) => task.completed);
 
-  const TaskItem = ({ task }: { task: Task }) => (
-    <Pressable onPress={() => {
-      setSelectedTask(task);
-      setModalVisible(true);
-    }}>
-      <Card style={styles.taskItemCard}>
-        <View style={styles.taskItemContainer}>
-          <Pressable onPress={() => toggleTask(task.id)} style={{ marginTop: 2 }}>
-            {task.completed ? <CheckCircle2 color="#16a34a" width={20} height={20} /> : <Circle color="#94a3b8" width={20} height={20} />}
-          </Pressable>
-          <View style={{ flex: 1 }}>
-            <Text style={[styles.taskTitle, task.completed && styles.completedTaskTitle]}>
-              {task.title}
-            </Text>
-            <View style={styles.taskMetaContainer}>
-              <Badge style={styles.priorityBadge}>
-                <Flag color="#f97316" width={12} height={12} style={{ marginRight: 4 }} />
-                <Text style={styles.priorityText}>{task.priority}</Text>
-              </Badge>
-              <Text style={styles.dueDateText}>{task.dueDate}</Text>
-            </View>
-          </View>
-        </View>
-      </Card>
-    </Pressable>
-  );
+  const handleSelectTask = (task) => {
+    setSelectedTask(task);
+    setModalVisible(true);
+  }
 
   return (
     <View style={{ flex: 1 }}>
@@ -192,9 +165,7 @@ export default function ToDoScreen() {
           </View>
         </View>
 
-        <Card style={styles.statsCard} children={undefined}>
-          {/* Stats content here */}
-        </Card>
+        <Card style={styles.statsCard} />
 
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.folderTabsContainer}>
           {folders.map(folder => (
@@ -209,13 +180,13 @@ export default function ToDoScreen() {
           {displayActiveTasks.length > 0 && (
             <View style={{ marginBottom: 16 }}>
               <Text style={styles.listTitle}>{t('todo.activeTasks')}</Text>
-              {displayActiveTasks.map(task => <TaskItem key={task.id} task={task} />)}
+              {displayActiveTasks.map(task => <TaskItem key={task.id} task={task} onSelectTask={handleSelectTask} onToggleTask={toggleTask} />)}
             </View>
           )}
           {displayCompletedTasks.length > 0 && (
             <View>
               <Text style={styles.listTitle}>{t('todo.completed')}</Text>
-              {displayCompletedTasks.map(task => <TaskItem key={task.id} task={task} />)}
+              {displayCompletedTasks.map(task => <TaskItem key={task.id} task={task} onSelectTask={handleSelectTask} onToggleTask={toggleTask} />)}
             </View>
           )}
         </View>
@@ -228,58 +199,25 @@ export default function ToDoScreen() {
         <Plus color="white" width={24} height={24} />
       </Pressable>
 
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={modalVisible}
-        onRequestClose={() => setModalVisible(false)}
-      >
-        <Pressable style={styles.modalContainer} onPress={() => setModalVisible(false)}>
-          <Pressable style={styles.modalView} onPress={(e) => e.stopPropagation()}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>{t('todo.addTask')}</Text>
-              <Pressable onPress={() => setModalVisible(false)}>
-                <Text style={styles.closeButton}>✕</Text>
-              </Pressable>
-            </View>
-            <Text style={styles.inputLabel}>{t('todo.taskName')}</Text>
-            <TextInput
-              style={styles.modalTextInput}
-              placeholder="例: プロジェクトを終わらせる"
-              value={newTaskTitle}
-              onChangeText={setNewTaskTitle}
-            />
-            <Text style={styles.inputLabel}>{t('todo.dueDate')}</Text>
-            <TextInput
-              style={styles.modalTextInput}
-              placeholder="例: 明日"
-              value={newDueDate}
-              onChangeText={setNewDueDate}
-            />
-            <Text style={styles.inputLabel}>{t('todo.priority')}</Text>
-            <TextInput
-              style={styles.modalTextInput}
-              placeholder="例: high"
-              value={newPriority}
-              onChangeText={(text) => setNewPriority(text as 'high' | 'medium' | 'low')}
-            />
-            <Text style={styles.inputLabel}>{t('todo.folder')}</Text>
-            <TextInput
-              style={styles.modalTextInput}
-              placeholder="例: work"
-              value={newFolder}
-              onChangeText={setNewFolder}
-            />
-            <Pressable style={styles.primaryButton} onPress={handleAddTask}>
-              <Text style={styles.primaryButtonText}>{selectedTask ? t('todo.updateTask') : t('todo.addTask')}</Text>
-            </Pressable>
-            {selectedTask && <Button title={t('todo.deleteTask')} onPress={() => deleteTask(selectedTask.id)} color="red" />}
-          </Pressable>
-        </Pressable>
-      </Modal>
+      <TaskModal
+        modalVisible={modalVisible}
+        setModalVisible={setModalVisible}
+        selectedTask={selectedTask}
+        newTaskTitle={newTaskTitle}
+        setNewTaskTitle={setNewTaskTitle}
+        newDueDate={newDueDate}
+        setNewDueDate={setNewDueDate}
+        newPriority={newPriority}
+        setNewPriority={setNewPriority}
+        newFolder={newFolder}
+        setNewFolder={setNewFolder}
+        handleAddTask={handleAddTask}
+        deleteTask={deleteTask}
+      />
     </View>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },

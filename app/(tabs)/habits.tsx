@@ -1,29 +1,15 @@
-import { Picker } from '@react-native-picker/picker';
-import { BookOpen, Code, Coffee, Dumbbell, Edit2, Moon, Plus, Sunrise, Trash2, Utensils } from 'lucide-react-native';
+
+import { Plus } from 'lucide-react-native';
 import React, { useCallback, useEffect, useState } from 'react';
-import { Alert, FlatList, Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Habit } from '../../src/features/habits/schema';
 import { getHabits, setHabits } from '../../src/features/habits/repo';
-import { calculateCompletion, calculateLongestStreak, calculateStreak, calculateWeeklyRate, getOverallLongestStreak } from '../../src/features/habits/service';
-import useLocalization from '../hooks/useLocalization';
-
-const Card = ({ children, style }: { children: React.ReactNode, style?: any }) => (
-  <View style={[styles.card, style]}>{children}</View>
-);
-
-const Badge = ({ children, style }: { children: React.ReactNode, style?: any }) => (
-  <View style={[styles.badge, style]}>{children}</View>
-);
-
-const iconMap: { [key: string]: React.FC<any> } = {
-  sunrise: Sunrise,
-  book: BookOpen,
-  dumbbell: Dumbbell,
-  utensils: Utensils,
-  moon: Moon,
-  code: Code,
-  coffee: Coffee,
-};
+import { calculateWeeklyRate, getOverallLongestStreak } from '../../src/features/habits/service';
+import useLocalization from '../../src/hooks/useLocalization';
+import { HabitItem } from '../../src/features/habits/components/HabitItem';
+import { HabitModal } from '../../src/features/habits/components/HabitModal';
+import { Badge } from '../../src/components/ui/badge';
+import { Card } from '../../src/components/ui/card';
 
 export default function HabitsScreen() {
   const { t } = useLocalization();
@@ -126,60 +112,14 @@ export default function HabitsScreen() {
     setEditingHabit(null);
   };
 
-  const renderItem = useCallback(({ item }: { item: Habit }) => {
-    const Icon = iconMap[item.icon] || Dumbbell;
-    const streak = calculateStreak(item.history);
-    const completionPercentage = calculateCompletion(item.completion);
-
-    return (
-      <Card
-        style={styles.habitItemCard}
-      >
-        <View style={styles.habitItemContent}>
-          <View style={styles.habitItemHeader}>
-            <View style={[styles.habitIconBg, { backgroundColor: item.color.bg }]}>
-              {Icon && <Icon color={item.color.text} width={24} height={24} />}
-            </View>
-            <View style={styles.habitTextContainer}>
-              <Text style={styles.habitName}>{item.name}</Text>
-              <Text style={styles.habitTime}>{item.time}</Text>
-              <View style={styles.habitStatsContainer}>
-                <Badge style={styles.streakBadge}>
-                  <Text style={styles.streakText}>🔥 {streak} {t('habits.dayStreak')}</Text>
-                </Badge>
-                <Text style={styles.completionText}>{completionPercentage}%</Text>
-              </View>
-            </View>
-            <View style={styles.habitActions}>
-              <Pressable
-                onPress={() => handleEdit(item)}
-                style={styles.actionButton}
-              >
-                <Edit2 color="#2563eb" width={16} height={16} />
-              </Pressable>
-              <Pressable
-                onPress={() => handleDelete(item.id)}
-                style={styles.actionButton}
-              >
-                <Trash2 color="#ef4444" width={16} height={16} />
-              </Pressable>
-            </View>
-          </View>
-
-          {/* Weekly Progress */}
-          <View style={styles.weeklyProgressContainer}>
-            {item.completion.map((completed, index) => (
-              <Pressable
-                key={index}
-                onPress={() => toggleCompletion(item.id, index)}
-                style={[styles.progressSquare, completed ? styles.completedSquare : styles.incompleteSquare]}
-              />
-            ))}
-          </View>
-        </View>
-      </Card>
-    );
-  }, [t]);
+  const renderItem = useCallback(({ item }: { item: Habit }) => (
+    <HabitItem
+      item={item}
+      onEdit={handleEdit}
+      onDelete={handleDelete}
+      onToggleCompletion={toggleCompletion}
+    />
+  ), []);
 
   const keyExtractor = (item: Habit) => item.id;
 
@@ -198,9 +138,6 @@ export default function HabitsScreen() {
                 <Text style={styles.headerTitle}>{t('habits.title')}</Text>
                 <Text style={styles.headerSubtitle}>{t('habits.subtitle')}</Text>
               </View>
-              <Pressable onPress={() => setIsAddDialogOpen(true)} style={styles.addButton}>
-                <Plus color="white" width={24} height={24} />
-              </Pressable>
             </View>
 
             {/* Weekly Overview */}
@@ -266,86 +203,27 @@ export default function HabitsScreen() {
         }
       />
 
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={isAddDialogOpen}
-        onRequestClose={() => setIsAddDialogOpen(false)}
-      >
-        <Pressable style={styles.modalContainer} onPress={() => setIsAddDialogOpen(false)}>
-          <Pressable style={styles.modalContent} onPress={(e) => e.stopPropagation()}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>{editingHabit ? t('habits.editHabit') : t('habits.addHabitTitle')}</Text>
-              <Pressable onPress={() => setIsAddDialogOpen(false)}>
-                <Text style={styles.closeButton}>✕</Text>
-              </Pressable>
-            </View>
-            <View style={styles.formGroup}>
-              <Text style={styles.label}>{t('habits.habitName')}</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="例: ランニング"
-                value={formData.name}
-                onChangeText={(text) => setFormData({ ...formData, name: text })}
-              />
-            </View>
-            <View style={styles.formGroup}>
-              <Text style={styles.label}>{t('habits.time')}</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="HH:MM AM/PM"
-                value={formData.time}
-                onChangeText={(text) => setFormData({ ...formData, time: text })}
-              />
-            </View>
-            <View style={styles.formGroup}>
-              <Text style={styles.label}>{t('habits.icon')}</Text>
-              <View style={styles.selectContainer}>
-                <Picker
-                  selectedValue={formData.icon}
-                  onValueChange={(itemValue) => setFormData({ ...formData, icon: itemValue })}
-                  style={styles.picker}
-                >
-                  <Picker.Item label="🌅 朝" value="sunrise" />
-                  <Picker.Item label="📚 勉強" value="book" />
-                  <Picker.Item label="💪 運動" value="dumbbell" />
-                  <Picker.Item label="🍽️ 食事" value="utensils" />
-                  <Picker.Item label="💻 作業" value="code" />
-                  <Picker.Item label="☕ 読書" value="coffee" />
-                  <Picker.Item label="🌙 睡眠" value="moon" />
-                </Picker>
-              </View>
-            </View>
-            <View style={styles.formGroup}>
-              <Text style={styles.label}>色</Text>
-              <View style={styles.selectContainer}>
-                <Picker
-                  selectedValue={formData.color}
-                  onValueChange={(itemValue) => setFormData({ ...formData, color: itemValue as { bg: string; text: string } })}
-                  style={styles.picker}
-                >
-                  {colorOptions.map(option => (
-                    <Picker.Item key={option.label} label={option.label} value={option} />
-                  ))}
-                </Picker>
-              </View>
-            </View>
-            <Pressable onPress={handleAddHabit} style={styles.primaryButton}>
-              <Text style={styles.primaryButtonText}>{editingHabit ? t('habits.update') : t('habits.add')}</Text>
-            </Pressable>
-            {editingHabit && (
-              <Pressable onPress={() => handleDelete(editingHabit.id)} style={[styles.primaryButton, styles.deleteButton]}>
-                <Text style={styles.primaryButtonText}>{t('habits.delete')}</Text>
-              </Pressable>
-            )}
-          </Pressable>
-        </Pressable>
-      </Modal>
+      {/* FAB */}
+      <Pressable onPress={() => setIsAddDialogOpen(true)} style={styles.fabButton}>
+        <Plus color="white" width={24} height={24} />
+      </Pressable>
+
+      <HabitModal
+        isAddDialogOpen={isAddDialogOpen}
+        setIsAddDialogOpen={setIsAddDialogOpen}
+        editingHabit={editingHabit}
+        formData={formData}
+        setFormData={setFormData}
+        colorOptions={colorOptions}
+        handleAddHabit={handleAddHabit}
+        handleDelete={handleDelete}
+      />
     </View>
   );
 }
 
-import { colors } from '../theme';
+
+import { colors } from '../../components/theme';
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
@@ -356,7 +234,6 @@ const styles = StyleSheet.create({
   headerTextContainer: {},
   headerTitle: { fontSize: 24, fontWeight: 'bold', color: colors.text },
   headerSubtitle: { fontSize: 16, color: colors.textMuted },
-  addButton: { backgroundColor: colors.primary, padding: 12, borderRadius: 999, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.25, shadowRadius: 3.84, elevation: 5 },
 
   // Weekly Overview
   weeklyOverviewCard: { padding: 16, borderRadius: 16, backgroundColor: colors.primaryLight, marginBottom: 16, borderColor: colors.primaryBorder, borderWidth: 1 },
@@ -427,4 +304,7 @@ const styles = StyleSheet.create({
   deleteButton: { backgroundColor: colors.rose, marginTop: 10 },
   card: { backgroundColor: 'white', borderRadius: 8, padding: 16, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.20, shadowRadius: 1.41, elevation: 2 },
   badge: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },
+
+  // FAB
+  fabButton: { position: 'absolute', bottom: 60, right: 24, width: 56, height: 56, borderRadius: 28, backgroundColor: colors.primary, justifyContent: 'center', alignItems: 'center', elevation: 8 },
 });

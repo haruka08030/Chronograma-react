@@ -1,12 +1,18 @@
+
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Plus } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
-import { Alert, Button, Modal, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
+import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { z } from 'zod';
-import useLocalization from '../hooks/useLocalization';
-import { ScheduleItemSchema } from '../schemas';
-import { colors } from '../theme';
+import { Card } from '../../src/components/ui/card';
+import { Progress } from '../../src/components/ui/progress';
+import useLocalization from '../../src/hooks/useLocalization';
+import { ScheduleItemSchema } from '../../src/types/schemas';
+import { ComparisonTimeline } from '../../src/features/today/ComparisonTimeline';
+import { ScheduleModal } from '../../src/features/today/ScheduleModal';
+import { SingleTimeline } from '../../src/features/today/SingleTimeline';
+import { colors } from '../../src/theme/theme';
 
 interface ScheduleItem {
   id: number;
@@ -22,26 +28,7 @@ interface ScheduleItem {
   unplanned?: boolean;
 }
 
-const timelineHours = Array.from({ length: 24 }, (_, i) => i);
-
-const timeToMinutes = (startTime: string): number => {
-  const [hours, minutes] = startTime.split(':').map(Number);
-  return hours * 60 + minutes;
-};
-
-const durationToMinutes = (durationMin: number): number => {
-  return durationMin;
-};
-
 const startMinutes = 0;
-
-const calculatePosition = (item: ScheduleItem) => {
-  const itemMinutes = timeToMinutes(item.startTime);
-  const duration = durationToMinutes(item.durationMin);
-  const topPosition = ((itemMinutes - startMinutes) / 60) * 80;
-  const height = (duration / 60) * 80;
-  return { top: topPosition, height };
-};
 
 export default function TodayScreen() {
   const { t } = useLocalization();
@@ -56,16 +43,6 @@ export default function TodayScreen() {
   const [newScheduleDuration, setNewScheduleDuration] = useState('');
   const [isActual, setIsActual] = useState(false);
   const scrollViewRef = React.useRef<ScrollView>(null);
-
-  const Card = ({ children, style }: { children: React.ReactNode, style?: any }) => (
-    <View style={[styles.card, style]}>{children}</View>
-  );
-
-  const Progress = ({ value }: { value: number }) => (
-    <View style={styles.progressContainer}>
-      <View style={[styles.progressBar, { width: `${value}%` }]} />
-    </View>
-  );
 
   useEffect(() => {
     loadSchedules();
@@ -184,90 +161,11 @@ export default function TodayScreen() {
   const today = new Date();
   const dateString = today.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
 
-  const ComparisonTimeline = () => (
-    <View style={styles.timelineContainer}>
-      <View style={{ flexDirection: 'row', marginBottom: 12 }}>
-        <View style={{ width: 48 }} />
-        <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-around' }}>
-          <Text style={styles.timelineHeaderText}>{t('calendar.ideal')}</Text>
-          <Text style={styles.timelineHeaderText}>{t('calendar.actual')}</Text>
-        </View>
-      </View>
-      <View style={{ height: timelineHours.length * 80 }}>
-        {timelineHours.map(hour => (
-          <View key={hour} style={styles.hourContainer}>
-            <Text style={styles.hourLabel}>{hour}:00</Text>
-            <View style={styles.hourLine} />
-          </View>
-        ))}
-        <View style={styles.scheduleItemsContainer}>
-          <View style={{ flex: 1, position: 'relative' }}>
-            {plannedSchedule.map((item, index) => {
-              const { top, height } = calculatePosition(item);
-              return (
-                <Pressable key={index} onPress={() => {
-                  setSelectedSchedule(item);
-                  setIsActual(false);
-                  setModalVisible(true);
-                }}>
-                  <View style={[styles.scheduleItem, { top, height, backgroundColor: item.color.bg, borderColor: item.color.border }]}>
-                    <Text style={styles.scheduleItemTitle}>{item.title}</Text>
-                  </View>
-                </Pressable>
-              );
-            })}
-          </View>
-          <View style={{ flex: 1, position: 'relative' }}>
-            {actualSchedule.map((item, index) => {
-              const { top, height } = calculatePosition(item);
-              return (
-                <Pressable key={index} onPress={() => {
-                  setSelectedSchedule(item);
-                  setIsActual(true);
-                  setModalVisible(true);
-                }}>
-                  <View style={[styles.scheduleItem, { top, height, backgroundColor: item.color.bg, borderColor: item.color.border }, item.current && styles.currentItem]}>
-                    <Text style={styles.scheduleItemTitle}>{item.title}</Text>
-                  </View>
-                </Pressable>
-              );
-            })}
-          </View>
-        </View>
-      </View>
-    </View>
-  );
-
-  const SingleTimeline = () => (
-    <View style={styles.timelineContainer}>
-      <View style={{ height: timelineHours.length * 80 }}>
-        {timelineHours.map(hour => (
-          <View key={hour} style={styles.hourContainer}>
-            <Text style={styles.hourLabel}>{hour}:00</Text>
-            <View style={styles.hourLine} />
-          </View>
-        ))}
-        <View style={[styles.scheduleItemsContainer, { left: 48, right: 0 }]}>
-          <View style={{ flex: 1, position: 'relative' }}>
-            {actualSchedule.map((item, index) => {
-              const { top, height } = calculatePosition(item);
-              return (
-                <Pressable key={index} onPress={() => {
-                  setSelectedSchedule(item);
-                  setIsActual(true);
-                  setModalVisible(true);
-                }}>
-                  <View style={[styles.scheduleItem, { top, height, backgroundColor: item.color.bg, borderColor: item.color.border }, item.current && styles.currentItem]}>
-                    <Text style={styles.scheduleItemTitle}>{item.title}</Text>
-                  </View>
-                </Pressable>
-              );
-            })}
-          </View>
-        </View>
-      </View>
-    </View>
-  );
+  const handleSelectSchedule = (item, isActual) => {
+    setSelectedSchedule(item);
+    setIsActual(isActual);
+    setModalVisible(true);
+  };
 
   return (
     <View style={{ flex: 1 }}>
@@ -297,7 +195,18 @@ export default function TodayScreen() {
           </Pressable>
         </View>
 
-        {activeTab === 'comparison' ? <ComparisonTimeline /> : <SingleTimeline />}
+        {activeTab === 'comparison' ? (
+          <ComparisonTimeline
+            plannedSchedule={plannedSchedule}
+            actualSchedule={actualSchedule}
+            onSelectSchedule={handleSelectSchedule}
+          />
+        ) : (
+          <SingleTimeline
+            actualSchedule={actualSchedule}
+            onSelectSchedule={handleSelectSchedule}
+          />
+        )}
 
       </ScrollView>
 
@@ -311,45 +220,25 @@ export default function TodayScreen() {
         <Plus color="white" width={24} height={24} />
       </Pressable>
 
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={modalVisible}
-        onRequestClose={() => setModalVisible(false)}
-      >
-        <Pressable style={styles.modalContainer} onPress={() => setModalVisible(false)}>
-          <Pressable style={styles.modalView} onPress={(e) => e.stopPropagation()}>
-            <TextInput
-              style={styles.modalTextInput}
-              placeholder={t('common.titlePlaceholder')}
-              value={newScheduleTitle}
-              onChangeText={setNewScheduleTitle}
-            />
-            <TextInput
-              style={styles.modalTextInput}
-              placeholder={t('common.startTimePlaceholder')}
-              value={newScheduleStartTime}
-              onChangeText={setNewScheduleStartTime}
-            />
-            <TextInput
-              style={styles.modalTextInput}
-              placeholder={t('common.durationPlaceholder')}
-              value={newScheduleDuration}
-              onChangeText={setNewScheduleDuration}
-              keyboardType="numeric"
-            />
-            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16 }}>
-              <Switch value={isActual} onValueChange={setIsActual} />
-              <Text style={{ marginLeft: 8 }}>{t('common.actualSchedule')}</Text>
-            </View>
-            <Button title={selectedSchedule ? t('habits.update') : t('habits.add')} onPress={handleAddScheduleItem} />
-            {selectedSchedule && <Button title={t('habits.delete')} onPress={() => deleteScheduleItem(selectedSchedule.id)} color="red" />}
-          </Pressable>
-        </Pressable>
-      </Modal>
+      <ScheduleModal
+        modalVisible={modalVisible}
+        setModalVisible={setModalVisible}
+        selectedSchedule={selectedSchedule}
+        newScheduleTitle={newScheduleTitle}
+        setNewScheduleTitle={setNewScheduleTitle}
+        newScheduleStartTime={newScheduleStartTime}
+        setNewScheduleStartTime={setNewScheduleStartTime}
+        newScheduleDuration={newScheduleDuration}
+        setNewScheduleDuration={setNewScheduleDuration}
+        isActual={isActual}
+        setIsActual={setIsActual}
+        handleAddScheduleItem={handleAddScheduleItem}
+        deleteScheduleItem={deleteScheduleItem}
+      />
     </View>
   );
 }
+
 
 
 const styles = StyleSheet.create({
