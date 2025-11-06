@@ -1,12 +1,10 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Picker } from '@react-native-picker/picker';
 import { BookOpen, Code, Coffee, Dumbbell, Edit2, Moon, Plus, Sunrise, Trash2, Utensils } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
-import { Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
-
-import { z } from 'zod';
+import { Alert, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { getHabits, setHabits } from '../../src/lib/storage';
+import { Habit } from '../../src/types/habits';
 import useLocalization from '../hooks/useLocalization';
-import { HabitSchema } from '../schemas';
 
 const Card = ({ children, style }: { children: React.ReactNode, style?: any }) => (
   <View style={[styles.card, style]}>{children}</View>
@@ -16,293 +14,54 @@ const Badge = ({ children, style }: { children: React.ReactNode, style?: any }) 
   <View style={[styles.badge, style]}>{children}</View>
 );
 
-interface Habit {
-
-  id: string;
-
-  name: string;
-
-  icon: string;
-
-  time: string;
-
-  color: { bg: string; text: string };
-
-  completion: boolean[];
-
-  history: boolean[];
-
-}
-
-
-
 const iconMap: { [key: string]: React.FC<any> } = {
-
   sunrise: Sunrise,
-
   book: BookOpen,
-
   dumbbell: Dumbbell,
-
   utensils: Utensils,
-
   moon: Moon,
-
   code: Code,
-
   coffee: Coffee,
-
 };
-
-
 
 export default function HabitsScreen() {
   const { t } = useLocalization();
-
-  const [habits, setHabits] = useState<Habit[]>([]);
-
+  const [habits, setHabitsState] = useState<Habit[]>([]);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-
   const [editingHabit, setEditingHabit] = useState<Habit | null>(null);
-
   const [formData, setFormData] = useState({
-
     name: '',
-
     icon: 'dumbbell',
-
     time: '',
-
     color: { bg: '#f5f3ff', text: '#7c3aed' },
-
   });
-
-
 
   const weekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
-
-
   const colorOptions = [
-
-
-
     { label: 'Purple', bg: '#f5f3ff', text: '#7c3aed' },
-
-
-
     { label: 'Blue', bg: '#eff6ff', text: '#2563eb' },
-
-
-
     { label: 'Rose', bg: '#fef2f2', text: '#ef4444' },
-
-
-
     { label: 'Green', bg: '#f0fdf4', text: '#22c55e' },
-
-
-
     { label: 'Amber', bg: '#fefce8', text: '#f59e0b' },
-
-
-
     { label: 'Cyan', bg: '#ecfeff', text: '#06b6d4' },
-
-
-
     { label: 'Indigo', bg: '#eef2ff', text: '#4f46e5' },
-
-
-
   ];
 
-
-
-  // ローカルストレージから読み込み
-
   useEffect(() => {
-
     const loadHabits = async () => {
-
-      try {
-
-        const saved = await AsyncStorage.getItem('habits');
-
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          const sanitizedData = parsed.map((habit: any) => ({
-            ...habit,
-            id: String(habit.id),
-          }));
-          const validated = z.array(HabitSchema).safeParse(sanitizedData);
-          if (validated.success) {
-            setHabits(validated.data);
-          } else {
-            console.error('Invalid habit data:', validated.error);
-          }
-        }
-
-        else {
-
-          // 初期データ
-
-          setHabits([
-
-            {
-
-              id: '1',
-
-              name: 'Morning Routine',
-
-              icon: 'sunrise',
-
-              time: '6:00 AM',
-
-              color: { bg: '#f5f3ff', text: '#7c3aed' },
-
-              completion: [true, true, true, false, true, true, false],
-
-              history: [true, true, true, false, true, true, false],
-
-            },
-
-            {
-
-              id: '2',
-
-              name: 'Study Session',
-
-              icon: 'book',
-
-              time: '8:00 AM',
-
-              color: { bg: '#eff6ff', text: '#2563eb' },
-
-              completion: [true, true, false, true, true, false, false],
-
-              history: [true, true, false, true, true, false, false],
-
-            },
-
-            {
-
-              id: '3',
-
-              name: 'Workout',
-
-              icon: 'dumbbell',
-
-              time: '3:00 PM',
-
-              color: { bg: '#fef2f2', text: '#ef4444' },
-
-              completion: [true, false, true, true, true, false, false],
-
-              history: [true, false, true, true, true, false, false],
-
-            },
-
-            {
-
-              id: '4',
-
-              name: 'Healthy Meal',
-
-              icon: 'utensils',
-
-              time: '12:00 PM',
-
-              color: { bg: '#f0fdf4', text: '#22c55e' },
-
-              completion: [true, true, true, true, true, true, false],
-
-              history: [true, true, true, true, true, true, false],
-
-            },
-
-            {
-
-              id: '5',
-
-              name: 'Project Work',
-
-              icon: 'code',
-
-              time: '5:00 PM',
-
-              color: { bg: '#fefce8', text: '#f59e0b' },
-
-              completion: [true, true, true, false, false, false, false],
-
-              history: [true, true, true, false, false, false, false],
-
-            },
-
-            {
-
-              id: '6',
-
-              name: 'Reading',
-
-              icon: 'coffee',
-
-              time: '8:00 PM',
-
-              color: { bg: '#ecfeff', text: '#06b6d4' },
-
-              completion: [false, true, false, true, true, false, false],
-
-              history: [false, true, false, true, true, false, false],
-
-            },
-
-            {
-
-              id: '7',
-
-              name: 'Sleep Schedule',
-
-              icon: 'moon',
-
-              time: '10:00 PM',
-
-              color: { bg: '#eef2ff', text: '#4f46e5' },
-
-              completion: [true, true, false, true, true, false, false],
-
-              history: [true, true, false, true, true, false, false],
-
-            },
-
-          ]);
-
-        }
-
-      } catch (error) {
-
-        console.error('Failed to load habits.', error);
-
+      const loadedHabits = await getHabits();
+      if (loadedHabits) {
+        setHabitsState(loadedHabits);
+      } else {
+        Alert.alert('Error', 'Failed to load habits.');
       }
-
     };
-
     loadHabits();
-
   }, []);
 
-  // ローカルストレージに保存
   useEffect(() => {
-    const saveHabits = async () => {
-      try {
-        if (habits.length > 0) {
-          await AsyncStorage.setItem('habits', JSON.stringify(habits));
-        }
-      } catch (error) {
-        console.error('Failed to save habits.', error);
-      }
-    };
-    saveHabits();
+    setHabits(habits);
   }, [habits]);
 
   const handleAddHabit = () => {
@@ -314,14 +73,14 @@ export default function HabitsScreen() {
       icon: formData.icon,
       time: formData.time,
       color: formData.color,
-      completion: editingHabit?.completion || [false, false, false, false, false, false, false],
+      completion: editingHabit?.completion || Array(7).fill(false),
       history: editingHabit?.history || [],
     };
 
     if (editingHabit) {
-      setHabits(habits.map(habit => habit.id === editingHabit.id ? newHabit : habit));
+      setHabitsState(habits.map(habit => habit.id === editingHabit.id ? newHabit : habit));
     } else {
-      setHabits([...habits, newHabit]);
+      setHabitsState([...habits, newHabit]);
     }
 
     resetForm();
@@ -340,11 +99,11 @@ export default function HabitsScreen() {
   };
 
   const handleDelete = (id: string) => {
-    setHabits(habits.filter(habit => habit.id !== id));
+    setHabitsState(habits.filter(habit => habit.id !== id));
   };
 
   const toggleCompletion = (habitId: string, dayIndex: number) => {
-    setHabits(habits.map(habit => {
+    setHabitsState(habits.map(habit => {
       if (habit.id === habitId) {
         const newCompletion = [...habit.completion];
         newCompletion[dayIndex] = !newCompletion[dayIndex];
@@ -407,9 +166,6 @@ export default function HabitsScreen() {
     });
     setEditingHabit(null);
   };
-
-
-
 
   return (
     <View style={styles.container}>
