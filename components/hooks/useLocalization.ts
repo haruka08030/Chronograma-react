@@ -1,7 +1,6 @@
-// Simple localization hook. Chooses between `en` and `ja` bundles shipped under components/locales.
 import { useMemo } from 'react';
-import en from '../locales/en.json';
-import ja from '../locales/ja.json';
+import en from '../i18n/en.json';
+import ja from '../i18n/ja.json';
 
 const bundles: Record<string, any> = { en, ja };
 

@@ -1,9 +1,10 @@
 import { Picker } from '@react-native-picker/picker';
 import { BookOpen, Code, Coffee, Dumbbell, Edit2, Moon, Plus, Sunrise, Trash2, Utensils } from 'lucide-react-native';
 import React, { useCallback, useEffect, useState } from 'react';
-import { Alert, FlatList, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
-import { getHabits, setHabits } from '../../src/lib/storage';
-import { Habit } from '../../src/types/habits';
+import { Alert, FlatList, Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Habit } from '../../src/features/habits/schema';
+import { getHabits, setHabits } from '../../src/features/habits/repo';
+import { calculateCompletion, calculateLongestStreak, calculateStreak, calculateWeeklyRate, getOverallLongestStreak } from '../../src/features/habits/service';
 import useLocalization from '../hooks/useLocalization';
 
 const Card = ({ children, style }: { children: React.ReactNode, style?: any }) => (
@@ -115,48 +116,6 @@ export default function HabitsScreen() {
     }));
   };
 
-  const calculateStreak = (history: boolean[]) => {
-    let streak = 0;
-    for (let i = history.length - 1; i >= 0; i--) {
-      if (history[i]) streak++;
-      else break;
-    }
-    return streak;
-  };
-
-  const calculateLongestStreak = (history: boolean[]) => {
-    let longestStreak = 0;
-    let currentStreak = 0;
-    for (let i = 0; i < history.length; i++) {
-      if (history[i]) {
-        currentStreak++;
-      } else {
-        if (currentStreak > longestStreak) {
-          longestStreak = currentStreak;
-        }
-        currentStreak = 0;
-      }
-    }
-    if (currentStreak > longestStreak) {
-      longestStreak = currentStreak;
-    }
-    return longestStreak;
-  };
-
-  const calculateCompletion = (completion: boolean[]) => {
-    const completed = completion.filter(Boolean).length;
-    return Math.round((completed / completion.length) * 100);
-  };
-
-  const calculateWeeklyRate = () => {
-    if (habits.length === 0) return 0;
-    const totalSlots = habits.length * 7;
-    const completedSlots = habits.reduce((sum, habit) =>
-      sum + habit.completion.filter(Boolean).length, 0
-    );
-    return Math.round((completedSlots / totalSlots) * 100);
-  };
-
   const resetForm = () => {
     setFormData({
       name: '',
@@ -170,7 +129,6 @@ export default function HabitsScreen() {
   const renderItem = useCallback(({ item }: { item: Habit }) => {
     const Icon = iconMap[item.icon] || Dumbbell;
     const streak = calculateStreak(item.history);
-    const longestStreak = calculateLongestStreak(item.history);
     const completionPercentage = calculateCompletion(item.completion);
 
     return (
@@ -251,7 +209,7 @@ export default function HabitsScreen() {
                 <View style={styles.weeklyOverviewHeader}>
                   <Text style={styles.weeklyOverviewTitle}>{t('habits.thisWeek')}</Text>
                   <Badge style={styles.weeklyOverviewBadge}>
-                    <Text style={styles.weeklyOverviewBadgeText}>{calculateWeeklyRate()}{t('habits.complete')}</Text>
+                    <Text style={styles.weeklyOverviewBadgeText}>{calculateWeeklyRate(habits)}{t('habits.complete')}</Text>
                   </Badge>
                 </View>
                 <View style={styles.weekDaysContainer}>
@@ -293,12 +251,12 @@ export default function HabitsScreen() {
                   </View>
                   <View style={styles.statDivider} />
                   <View style={styles.statItem}>
-                    <Text style={styles.statValue}>{calculateWeeklyRate()}%</Text>
+                    <Text style={styles.statValue}>{calculateWeeklyRate(habits)}%</Text>
                     <Text style={styles.statLabel}>{t('habits.weeklyRate')}</Text>
                   </View>
                   <View style={styles.statDivider} />
                   <View style={styles.statItem}>
-                    <Text style={styles.statValue}>{Math.max(...habits.map(h => calculateLongestStreak(h.history)), 0)}</Text>
+                    <Text style={styles.statValue}>{getOverallLongestStreak(habits)}</Text>
                     <Text style={styles.statLabel}>{t('habits.longestStreak')}</Text>
                   </View>
                 </View>

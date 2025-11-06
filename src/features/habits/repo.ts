@@ -1,7 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { z } from 'zod';
-import { HabitSchema } from '../../components/schemas';
-import { Habit } from '../types/habits';
+import { Habit, HabitSchema } from './schema';
 
 const HABITS_STORAGE_KEY = 'habits';
 
@@ -23,14 +22,12 @@ export const getHabits = async (): Promise<Habit[] | null> => {
         return validated.data;
       } else {
         console.error('Invalid habit data after migration:', validated.error);
-        // Here you might want to show a toast to the user
         return null;
       }
     }
     return []; // Return empty array if no habits are saved
   } catch (error) {
     console.error('Failed to load habits.', error);
-    // Here you might want to show a toast to the user
     return null;
   }
 };
@@ -40,6 +37,5 @@ export const setHabits = async (habits: Habit[]): Promise<void> => {
     await AsyncStorage.setItem(HABITS_STORAGE_KEY, JSON.stringify(habits));
   } catch (error) {
     console.error('Failed to save habits.', error);
-    // Here you might want to show a toast to the user
   }
 };

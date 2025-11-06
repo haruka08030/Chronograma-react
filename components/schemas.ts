@@ -17,19 +17,6 @@ export const ScheduleItemSchema = z.object({
   unplanned: z.boolean().optional(),
 });
 
-export const HabitSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  icon: z.string(),
-  time: z.string(),
-  color: z.object({
-    bg: z.string(),
-    text: z.string(),
-  }),
-  completion: z.array(z.boolean()),
-  history: z.array(z.boolean()),
-});
-
 export const TaskSchema = z.object({
   id: z.number(),
   title: z.string(),
