@@ -1,12 +1,10 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Picker } from '@react-native-picker/picker';
 import { BookOpen, Code, Coffee, Dumbbell, Edit2, Moon, Plus, Sunrise, Trash2, Utensils } from 'lucide-react-native';
-import React, { useEffect, useState } from 'react';
-import { Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
-
-import { z } from 'zod';
+import React, { useCallback, useEffect, useState } from 'react';
+import { Alert, FlatList, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { getHabits, setHabits } from '../../src/lib/storage';
+import { Habit } from '../../src/types/habits';
 import useLocalization from '../hooks/useLocalization';
-import { HabitSchema } from '../schemas';
 
 const Card = ({ children, style }: { children: React.ReactNode, style?: any }) => (
   <View style={[styles.card, style]}>{children}</View>
@@ -16,289 +14,54 @@ const Badge = ({ children, style }: { children: React.ReactNode, style?: any }) 
   <View style={[styles.badge, style]}>{children}</View>
 );
 
-interface Habit {
-
-  id: string;
-
-  name: string;
-
-  icon: string;
-
-  time: string;
-
-  color: { bg: string; text: string };
-
-  completion: boolean[];
-
-  history: boolean[];
-
-}
-
-
-
 const iconMap: { [key: string]: React.FC<any> } = {
-
   sunrise: Sunrise,
-
   book: BookOpen,
-
   dumbbell: Dumbbell,
-
   utensils: Utensils,
-
   moon: Moon,
-
   code: Code,
-
   coffee: Coffee,
-
 };
-
-
 
 export default function HabitsScreen() {
   const { t } = useLocalization();
-
-  const [habits, setHabits] = useState<Habit[]>([]);
-
+  const [habits, setHabitsState] = useState<Habit[]>([]);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-
   const [editingHabit, setEditingHabit] = useState<Habit | null>(null);
-
   const [formData, setFormData] = useState({
-
     name: '',
-
     icon: 'dumbbell',
-
     time: '',
-
     color: { bg: '#f5f3ff', text: '#7c3aed' },
-
   });
-
-
 
   const weekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
-
-
   const colorOptions = [
-
-
-
     { label: 'Purple', bg: '#f5f3ff', text: '#7c3aed' },
-
-
-
     { label: 'Blue', bg: '#eff6ff', text: '#2563eb' },
-
-
-
     { label: 'Rose', bg: '#fef2f2', text: '#ef4444' },
-
-
-
     { label: 'Green', bg: '#f0fdf4', text: '#22c55e' },
-
-
-
     { label: 'Amber', bg: '#fefce8', text: '#f59e0b' },
-
-
-
     { label: 'Cyan', bg: '#ecfeff', text: '#06b6d4' },
-
-
-
     { label: 'Indigo', bg: '#eef2ff', text: '#4f46e5' },
-
-
-
   ];
 
-
-
-  // ローカルストレージから読み込み
-
   useEffect(() => {
-
     const loadHabits = async () => {
-
-      try {
-
-        const saved = await AsyncStorage.getItem('habits');
-
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          const validated = z.array(HabitSchema).safeParse(parsed);
-          if (validated.success) {
-            setHabits(validated.data);
-          } else {
-            console.error('Invalid habit data:', validated.error);
-          }
-        }
-
-        else {
-
-          // 初期データ
-
-          setHabits([
-
-            {
-
-              id: '1',
-
-              name: 'Morning Routine',
-
-              icon: 'sunrise',
-
-              time: '6:00 AM',
-
-              color: { bg: '#f5f3ff', text: '#7c3aed' },
-
-              completion: [true, true, true, false, true, true, false],
-
-              history: [true, true, true, false, true, true, false],
-
-            },
-
-            {
-
-              id: '2',
-
-              name: 'Study Session',
-
-              icon: 'book',
-
-              time: '8:00 AM',
-
-              color: { bg: '#eff6ff', text: '#2563eb' },
-
-              completion: [true, true, false, true, true, false, false],
-
-              history: [true, true, false, true, true, false, false],
-
-            },
-
-            {
-
-              id: '3',
-
-              name: 'Workout',
-
-              icon: 'dumbbell',
-
-              time: '3:00 PM',
-
-              color: { bg: '#fef2f2', text: '#ef4444' },
-
-              completion: [true, false, true, true, true, false, false],
-
-              history: [true, false, true, true, true, false, false],
-
-            },
-
-            {
-
-              id: '4',
-
-              name: 'Healthy Meal',
-
-              icon: 'utensils',
-
-              time: '12:00 PM',
-
-              color: { bg: '#f0fdf4', text: '#22c55e' },
-
-              completion: [true, true, true, true, true, true, false],
-
-              history: [true, true, true, true, true, true, false],
-
-            },
-
-            {
-
-              id: '5',
-
-              name: 'Project Work',
-
-              icon: 'code',
-
-              time: '5:00 PM',
-
-              color: { bg: '#fefce8', text: '#f59e0b' },
-
-              completion: [true, true, true, false, false, false, false],
-
-              history: [true, true, true, false, false, false, false],
-
-            },
-
-            {
-
-              id: '6',
-
-              name: 'Reading',
-
-              icon: 'coffee',
-
-              time: '8:00 PM',
-
-              color: { bg: '#ecfeff', text: '#06b6d4' },
-
-              completion: [false, true, false, true, true, false, false],
-
-              history: [false, true, false, true, true, false, false],
-
-            },
-
-            {
-
-              id: '7',
-
-              name: 'Sleep Schedule',
-
-              icon: 'moon',
-
-              time: '10:00 PM',
-
-              color: { bg: '#eef2ff', text: '#4f46e5' },
-
-              completion: [true, true, false, true, true, false, false],
-
-              history: [true, true, false, true, true, false, false],
-
-            },
-
-          ]);
-
-        }
-
-      } catch (error) {
-
-        console.error('Failed to load habits.', error);
-
+      const loadedHabits = await getHabits();
+      if (loadedHabits) {
+        setHabitsState(loadedHabits);
+      } else {
+        Alert.alert('Error', 'Failed to load habits.');
       }
-
     };
-
     loadHabits();
-
   }, []);
 
-  // ローカルストレージに保存
   useEffect(() => {
-    const saveHabits = async () => {
-      try {
-        if (habits.length > 0) {
-          await AsyncStorage.setItem('habits', JSON.stringify(habits));
-        }
-      } catch (error) {
-        console.error('Failed to save habits.', error);
-      }
-    };
-    saveHabits();
+    setHabits(habits);
   }, [habits]);
 
   const handleAddHabit = () => {
@@ -310,14 +73,14 @@ export default function HabitsScreen() {
       icon: formData.icon,
       time: formData.time,
       color: formData.color,
-      completion: editingHabit?.completion || [false, false, false, false, false, false, false],
+      completion: editingHabit?.completion || Array(7).fill(false),
       history: editingHabit?.history || [],
     };
 
     if (editingHabit) {
-      setHabits(habits.map(habit => habit.id === editingHabit.id ? newHabit : habit));
+      setHabitsState(habits.map(habit => habit.id === editingHabit.id ? newHabit : habit));
     } else {
-      setHabits([...habits, newHabit]);
+      setHabitsState([...habits, newHabit]);
     }
 
     resetForm();
@@ -336,11 +99,11 @@ export default function HabitsScreen() {
   };
 
   const handleDelete = (id: string) => {
-    setHabits(habits.filter(habit => habit.id !== id));
+    setHabitsState(habits.filter(habit => habit.id !== id));
   };
 
   const toggleCompletion = (habitId: string, dayIndex: number) => {
-    setHabits(habits.map(habit => {
+    setHabitsState(habits.map(habit => {
       if (habit.id === habitId) {
         const newCompletion = [...habit.completion];
         newCompletion[dayIndex] = !newCompletion[dayIndex];
@@ -404,141 +167,146 @@ export default function HabitsScreen() {
     setEditingHabit(null);
   };
 
+  const renderItem = useCallback(({ item }: { item: Habit }) => {
+    const Icon = iconMap[item.icon] || Dumbbell;
+    const streak = calculateStreak(item.history);
+    const longestStreak = calculateLongestStreak(item.history);
+    const completionPercentage = calculateCompletion(item.completion);
 
+    return (
+      <Card
+        style={styles.habitItemCard}
+      >
+        <View style={styles.habitItemContent}>
+          <View style={styles.habitItemHeader}>
+            <View style={[styles.habitIconBg, { backgroundColor: item.color.bg }]}>
+              {Icon && <Icon color={item.color.text} width={24} height={24} />}
+            </View>
+            <View style={styles.habitTextContainer}>
+              <Text style={styles.habitName}>{item.name}</Text>
+              <Text style={styles.habitTime}>{item.time}</Text>
+              <View style={styles.habitStatsContainer}>
+                <Badge style={styles.streakBadge}>
+                  <Text style={styles.streakText}>🔥 {streak} {t('habits.dayStreak')}</Text>
+                </Badge>
+                <Text style={styles.completionText}>{completionPercentage}%</Text>
+              </View>
+            </View>
+            <View style={styles.habitActions}>
+              <Pressable
+                onPress={() => handleEdit(item)}
+                style={styles.actionButton}
+              >
+                <Edit2 color="#2563eb" width={16} height={16} />
+              </Pressable>
+              <Pressable
+                onPress={() => handleDelete(item.id)}
+                style={styles.actionButton}
+              >
+                <Trash2 color="#ef4444" width={16} height={16} />
+              </Pressable>
+            </View>
+          </View>
 
+          {/* Weekly Progress */}
+          <View style={styles.weeklyProgressContainer}>
+            {item.completion.map((completed, index) => (
+              <Pressable
+                key={index}
+                onPress={() => toggleCompletion(item.id, index)}
+                style={[styles.progressSquare, completed ? styles.completedSquare : styles.incompleteSquare]}
+              />
+            ))}
+          </View>
+        </View>
+      </Card>
+    );
+  }, [t]);
+
+  const keyExtractor = (item: Habit) => item.id;
 
   return (
     <View style={styles.container}>
-      <ScrollView contentContainerStyle={styles.contentContainer}>
-        {/* Header */}
-        <View style={styles.headerContainer}>
-          <View style={styles.headerTextContainer}>
-            <Text style={styles.headerTitle}>{t('habits.title')}</Text>
-            <Text style={styles.headerSubtitle}>{t('habits.subtitle')}</Text>
-          </View>
-          <Pressable onPress={() => setIsAddDialogOpen(true)} style={styles.addButton}>
-            <Plus color="white" width={24} height={24} />
-          </Pressable>
-        </View>
-
-        {/* Weekly Overview */}
-        <Card style={styles.weeklyOverviewCard}>
-          <View style={styles.weeklyOverviewContent}>
-            <View style={styles.weeklyOverviewHeader}>
-              <Text style={styles.weeklyOverviewTitle}>{t('habits.thisWeek')}</Text>
-              <Badge style={styles.weeklyOverviewBadge}>
-                <Text style={styles.weeklyOverviewBadgeText}>{calculateWeeklyRate()}{t('habits.complete')}</Text>
-              </Badge>
+      <FlatList
+        data={habits}
+        renderItem={renderItem}
+        keyExtractor={keyExtractor}
+        contentContainerStyle={styles.contentContainer}
+        ListHeaderComponent={
+          <>
+            {/* Header */}
+            <View style={styles.headerContainer}>
+              <View style={styles.headerTextContainer}>
+                <Text style={styles.headerTitle}>{t('habits.title')}</Text>
+                <Text style={styles.headerSubtitle}>{t('habits.subtitle')}</Text>
+              </View>
+              <Pressable onPress={() => setIsAddDialogOpen(true)} style={styles.addButton}>
+                <Plus color="white" width={24} height={24} />
+              </Pressable>
             </View>
-            <View style={styles.weekDaysContainer}>
-              {weekDays.map((day, index) => {
-                const today = new Date().getDay();
-                const isToday = today === 0 ? index === 6 : index === today - 1;
-                return (
-                  <View
-                    key={day}
-                    style={[styles.weekDayItem, isToday ? styles.todayWeekDayItem : styles.normalWeekDayItem]}
-                  >
-                    <Text style={styles.weekDayText}>{day}</Text>
-                  </View>
-                );
-              })}
+
+            {/* Weekly Overview */}
+            <Card style={styles.weeklyOverviewCard}>
+              <View style={styles.weeklyOverviewContent}>
+                <View style={styles.weeklyOverviewHeader}>
+                  <Text style={styles.weeklyOverviewTitle}>{t('habits.thisWeek')}</Text>
+                  <Badge style={styles.weeklyOverviewBadge}>
+                    <Text style={styles.weeklyOverviewBadgeText}>{calculateWeeklyRate()}{t('habits.complete')}</Text>
+                  </Badge>
+                </View>
+                <View style={styles.weekDaysContainer}>
+                  {weekDays.map((day, index) => {
+                    const today = new Date().getDay();
+                    const isToday = today === 0 ? index === 6 : index === today - 1;
+                    return (
+                      <View
+                        key={day}
+                        style={[styles.weekDayItem, isToday ? styles.todayWeekDayItem : styles.normalWeekDayItem]}
+                      >
+                        <Text style={styles.weekDayText}>{day}</Text>
+                      </View>
+                    );
+                  })}
+                </View>
+              </View>
+            </Card>
+
+            {/* Habits List */}
+            <View style={styles.habitsListContainer}>
+              <Text style={styles.listTitle}>{t('habits.yourHabits')}</Text>
             </View>
-          </View>
-        </Card>
-
-        {/* Habits List */}
-        <View style={styles.habitsListContainer}>
-          <Text style={styles.listTitle}>{t('habits.yourHabits')}</Text>
-          <View style={styles.habitsGrid}>
-            {habits.map((habit) => {
-              const Icon = iconMap[habit.icon] || Dumbbell;
-              const streak = calculateStreak(habit.history);
-              const longestStreak = calculateLongestStreak(habit.history);
-              const completionPercentage = calculateCompletion(habit.completion);
-
-              return (
-                <Card
-                  key={habit.id}
-                  style={styles.habitItemCard}
-                >
-                  <View style={styles.habitItemContent}>
-                    <View style={styles.habitItemHeader}>
-                      <View style={[styles.habitIconBg, { backgroundColor: habit.color.bg }]}>
-                        {Icon && <Icon color={habit.color.text} width={24} height={24} />}
-                      </View>
-                      <View style={styles.habitTextContainer}>
-                        <Text style={styles.habitName}>{habit.name}</Text>
-                        <Text style={styles.habitTime}>{habit.time}</Text>
-                        <View style={styles.habitStatsContainer}>
-                          <Badge style={styles.streakBadge}>
-                            <Text style={styles.streakText}>🔥 {streak} {t('habits.dayStreak')}</Text>
-                          </Badge>
-                          <Text style={styles.completionText}>{completionPercentage}%</Text>
-                        </View>
-                      </View>
-                      <View style={styles.habitActions}>
-                        <Pressable
-                          onPress={() => handleEdit(habit)}
-                          style={styles.actionButton}
-                        >
-                          <Edit2 color="#2563eb" width={16} height={16} />
-                        </Pressable>
-                        <Pressable
-                          onPress={() => handleDelete(habit.id)}
-                          style={styles.actionButton}
-                        >
-                          <Trash2 color="#ef4444" width={16} height={16} />
-                        </Pressable>
-                      </View>
-                    </View>
-
-                    {/* Weekly Progress */}
-                    <View style={styles.weeklyProgressContainer}>
-                      {habit.completion.map((completed, index) => (
-                        <Pressable
-                          key={index}
-                          onPress={() => toggleCompletion(habit.id, index)}
-                          style={[styles.progressSquare, completed ? styles.completedSquare : styles.incompleteSquare]}
-                        />
-                      ))}
-                    </View>
-                  </View>
-                </Card>
-              );
-            })}
-          </View>
-        </View>
-
-        {/* Empty State */}
-        {habits.length === 0 && (
+          </>
+        }
+        ListEmptyComponent={
           <View style={styles.emptyStateContainer}>
             <Text style={styles.emptyStateText}>{t('habits.addHabit')}</Text>
           </View>
-        )}
-
-        {/* Stats Card */}
-        {habits.length > 0 && (
-          <Card style={styles.statsCard}>
-            <View style={styles.statsContent}>
-              <View style={styles.statItem}>
-                <Text style={styles.statValue}>{habits.length}</Text>
-                <Text style={styles.statLabel}>{t('habits.activeHabits')}</Text>
-              </View>
-              <View style={styles.statDivider} />
-              <View style={styles.statItem}>
-                <Text style={styles.statValue}>{calculateWeeklyRate()}%</Text>
-                <Text style={styles.statLabel}>{t('habits.weeklyRate')}</Text>
-              </View>
-              <View style={styles.statDivider} />
-              <View style={styles.statItem}>
-                <Text style={styles.statValue}>{Math.max(...habits.map(h => calculateLongestStreak(h.history)), 0)}</Text>
-                <Text style={styles.statLabel}>{t('habits.longestStreak')}</Text>
-              </View>
-            </View>
-          </Card>
-        )}
-      </ScrollView>
+        }
+        ListFooterComponent={
+          <>
+            {habits.length > 0 && (
+              <Card style={styles.statsCard}>
+                <View style={styles.statsContent}>
+                  <View style={styles.statItem}>
+                    <Text style={styles.statValue}>{habits.length}</Text>
+                    <Text style={styles.statLabel}>{t('habits.activeHabits')}</Text>
+                  </View>
+                  <View style={styles.statDivider} />
+                  <View style={styles.statItem}>
+                    <Text style={styles.statValue}>{calculateWeeklyRate()}%</Text>
+                    <Text style={styles.statLabel}>{t('habits.weeklyRate')}</Text>
+                  </View>
+                  <View style={styles.statDivider} />
+                  <View style={styles.statItem}>
+                    <Text style={styles.statValue}>{Math.max(...habits.map(h => calculateLongestStreak(h.history)), 0)}</Text>
+                    <Text style={styles.statLabel}>{t('habits.longestStreak')}</Text>
+                  </View>
+                </View>
+              </Card>
+            )}
+          </>
+        }
+      />
 
       <Modal
         animationType="slide"
@@ -649,7 +417,7 @@ const styles = StyleSheet.create({
   habitsListContainer: { marginBottom: 16 },
   listTitle: { fontSize: 18, fontWeight: 'bold', color: colors.text, marginBottom: 8 },
   habitsGrid: { gap: 12 },
-  habitItemCard: { padding: 16, borderRadius: 12, backgroundColor: 'white', borderColor: colors.border, borderWidth: 1, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 2 },
+  habitItemCard: { padding: 16, borderRadius: 12, backgroundColor: 'white', borderColor: colors.border, borderWidth: 1, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 2, marginBottom: 12 },
   habitItemContent: {},
   habitItemHeader: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, marginBottom: 12 },
   habitIconBg: { width: 48, height: 48, borderRadius: 12, justifyContent: 'center', alignItems: 'center', flexShrink: 0 },
