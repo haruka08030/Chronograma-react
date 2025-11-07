@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, ViewProps, TextProps } from 'react-native';
-import { colors } from '@/src/theme/theme';
+import { colors } from '../../theme/theme';
 
 const Card: React.FC<ViewProps> = ({ style, ...props }) => (
   <View style={[styles.card, style]} {...props} />

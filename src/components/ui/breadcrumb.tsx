@@ -1,102 +1,77 @@
-import * as React from "react";
-import { Slot } from "@radix-ui/react-slot@1.1.2";
-import { ChevronRight, MoreHorizontal } from "lucide-react@0.487.0";
+import React from 'react';
+import { View, Text, StyleSheet, ViewProps, TextProps } from 'react-native';
+import { ChevronRight, MoreHorizontal } from 'lucide-react-native';
+import { colors } from '../../theme/theme';
 
-import { cn } from "./utils";
+const Breadcrumb: React.FC<ViewProps> = (props) => {
+  return <View style={styles.breadcrumb} {...props} />;
+};
 
-function Breadcrumb({ ...props }: React.ComponentProps<"nav">) {
-  return <nav aria-label="breadcrumb" data-slot="breadcrumb" {...props} />;
-}
+const BreadcrumbList: React.FC<ViewProps> = (props) => {
+  return <View style={styles.breadcrumbList} {...props} />;
+};
 
-function BreadcrumbList({ className, ...props }: React.ComponentProps<"ol">) {
+const BreadcrumbItem: React.FC<ViewProps> = (props) => {
+  return <View style={styles.breadcrumbItem} {...props} />;
+};
+
+const BreadcrumbLink: React.FC<TextProps> = (props) => {
+  return <Text style={styles.breadcrumbLink} {...props} />;
+};
+
+const BreadcrumbPage: React.FC<TextProps> = (props) => {
+  return <Text style={styles.breadcrumbPage} {...props} />;
+};
+
+const BreadcrumbSeparator: React.FC<ViewProps> = ({ children, ...props }) => {
   return (
-    <ol
-      data-slot="breadcrumb-list"
-      className={cn(
-        "text-muted-foreground flex flex-wrap items-center gap-1.5 text-sm break-words sm:gap-2.5",
-        className,
-      )}
-      {...props}
-    />
+    <View style={styles.breadcrumbSeparator} {...props}>
+      {children ?? <ChevronRight size={14} color={colors.textSubtle} />}
+    </View>
   );
-}
+};
 
-function BreadcrumbItem({ className, ...props }: React.ComponentProps<"li">) {
+const BreadcrumbEllipsis: React.FC<ViewProps> = (props) => {
   return (
-    <li
-      data-slot="breadcrumb-item"
-      className={cn("inline-flex items-center gap-1.5", className)}
-      {...props}
-    />
+    <View style={styles.breadcrumbEllipsis} {...props}>
+      <MoreHorizontal size={16} color={colors.textSubtle} />
+    </View>
   );
-}
+};
 
-function BreadcrumbLink({
-  asChild,
-  className,
-  ...props
-}: React.ComponentProps<"a"> & {
-  asChild?: boolean;
-}) {
-  const Comp = asChild ? Slot : "a";
-
-  return (
-    <Comp
-      data-slot="breadcrumb-link"
-      className={cn("hover:text-foreground transition-colors", className)}
-      {...props}
-    />
-  );
-}
-
-function BreadcrumbPage({ className, ...props }: React.ComponentProps<"span">) {
-  return (
-    <span
-      data-slot="breadcrumb-page"
-      role="link"
-      aria-disabled="true"
-      aria-current="page"
-      className={cn("text-foreground font-normal", className)}
-      {...props}
-    />
-  );
-}
-
-function BreadcrumbSeparator({
-  children,
-  className,
-  ...props
-}: React.ComponentProps<"li">) {
-  return (
-    <li
-      data-slot="breadcrumb-separator"
-      role="presentation"
-      aria-hidden="true"
-      className={cn("[&>svg]:size-3.5", className)}
-      {...props}
-    >
-      {children ?? <ChevronRight />}
-    </li>
-  );
-}
-
-function BreadcrumbEllipsis({
-  className,
-  ...props
-}: React.ComponentProps<"span">) {
-  return (
-    <span
-      data-slot="breadcrumb-ellipsis"
-      role="presentation"
-      aria-hidden="true"
-      className={cn("flex size-9 items-center justify-center", className)}
-      {...props}
-    >
-      <MoreHorizontal className="size-4" />
-      <span className="sr-only">More</span>
-    </span>
-  );
-}
+const styles = StyleSheet.create({
+  breadcrumb: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  breadcrumbList: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+  },
+  breadcrumbItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  breadcrumbLink: {
+    color: colors.textSubtle,
+    fontSize: 14,
+  },
+  breadcrumbPage: {
+    color: colors.text,
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  breadcrumbSeparator: {
+    marginHorizontal: 4,
+  },
+  breadcrumbEllipsis: {
+    width: 36,
+    height: 36,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+});
 
 export {
   Breadcrumb,

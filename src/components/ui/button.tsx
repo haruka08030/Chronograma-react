@@ -1,6 +1,33 @@
+import { cva } from 'class-variance-authority';
 import React from 'react';
 import { Pressable, Text, StyleSheet, ViewStyle, TextStyle, PressableProps } from 'react-native';
-import { colors } from '@/src/theme/theme';
+import { colors } from '../../theme/theme';
+
+const buttonVariants = cva(
+  'flex items-center justify-center rounded-md',
+  {
+    variants: {
+      variant: {
+        default: 'bg-primary',
+        destructive: 'bg-rose-500',
+        outline: 'border border-input',
+        secondary: 'bg-primary-light',
+        ghost: 'bg-transparent',
+        link: 'bg-transparent underline',
+      },
+      size: {
+        default: 'h-10 px-4 py-2',
+        sm: 'h-9 rounded-md px-3',
+        lg: 'h-11 rounded-md px-8',
+        icon: 'h-10 w-10',
+      },
+    },
+    defaultVariants: {
+      variant: 'default',
+      size: 'default',
+    },
+  }
+);
 
 interface ButtonProps extends PressableProps {
   children: React.ReactNode;
@@ -101,4 +128,4 @@ const sizeStyles = {
   }),
 };
 
-export { Button };
+export { Button, buttonVariants };

@@ -1,58 +1,45 @@
-"use client";
+import React from 'react';
+import { ScrollView, StyleSheet, View } from 'react-native';
 
-import * as React from "react";
-import * as ScrollAreaPrimitive from "@radix-ui/react-scroll-area@1.2.3";
+// Placeholder for ScrollArea component
+const ScrollArea = ({ children }: { children: React.ReactNode }) => (
+  <ScrollView style={styles.container}>
+    {children}
+  </ScrollView>
+);
 
-import { cn } from "./utils";
+const ScrollAreaViewport = ({ children }: { children: React.ReactNode }) => (
+  <View style={styles.viewport}>{children}</View>
+);
 
-function ScrollArea({
-  className,
-  children,
-  ...props
-}: React.ComponentProps<typeof ScrollAreaPrimitive.Root>) {
-  return (
-    <ScrollAreaPrimitive.Root
-      data-slot="scroll-area"
-      className={cn("relative", className)}
-      {...props}
-    >
-      <ScrollAreaPrimitive.Viewport
-        data-slot="scroll-area-viewport"
-        className="focus-visible:ring-ring/50 size-full rounded-[inherit] transition-[color,box-shadow] outline-none focus-visible:ring-[3px] focus-visible:outline-1"
-      >
-        {children}
-      </ScrollAreaPrimitive.Viewport>
-      <ScrollBar />
-      <ScrollAreaPrimitive.Corner />
-    </ScrollAreaPrimitive.Root>
-  );
-}
+const ScrollAreaScrollbar = ({ children }: { children: React.ReactNode }) => (
+  <View style={styles.scrollbar}>{children}</View>
+);
 
-function ScrollBar({
-  className,
-  orientation = "vertical",
-  ...props
-}: React.ComponentProps<typeof ScrollAreaPrimitive.ScrollAreaScrollbar>) {
-  return (
-    <ScrollAreaPrimitive.ScrollAreaScrollbar
-      data-slot="scroll-area-scrollbar"
-      orientation={orientation}
-      className={cn(
-        "flex touch-none p-px transition-colors select-none",
-        orientation === "vertical" &&
-          "h-full w-2.5 border-l border-l-transparent",
-        orientation === "horizontal" &&
-          "h-2.5 flex-col border-t border-t-transparent",
-        className,
-      )}
-      {...props}
-    >
-      <ScrollAreaPrimitive.ScrollAreaThumb
-        data-slot="scroll-area-thumb"
-        className="bg-border relative flex-1 rounded-full"
-      />
-    </ScrollAreaPrimitive.ScrollAreaScrollbar>
-  );
-}
+const ScrollAreaThumb = ({ children }: { children: React.ReactNode }) => (
+  <View style={styles.thumb}>{children}</View>
+);
 
-export { ScrollArea, ScrollBar };
+const ScrollAreaCorner = ({ children }: { children: React.ReactNode }) => (
+  <View style={styles.corner}>{children}</View>
+);
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  viewport: {
+    flex: 1,
+  },
+  scrollbar: {
+    // Add your styles here
+  },
+  thumb: {
+    // Add your styles here
+  },
+  corner: {
+    // Add your styles here
+  },
+});
+
+export { ScrollArea, ScrollAreaViewport, ScrollAreaScrollbar, ScrollAreaThumb, ScrollAreaCorner };

@@ -1,6 +1,6 @@
 import React, { createContext, useContext } from 'react';
 import { Modal, View, Text, Pressable, StyleSheet, Alert } from 'react-native';
-import { colors } from '@/src/theme/theme';
+import { colors } from '../../theme/theme';
 import { Button } from './button'; // Assuming button is RN compatible
 
 // Context for Dialog/Alert Dialog

@@ -7,26 +7,12 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { z } from 'zod';
 
-import { CalendarGrid } from '@/src/features/calendar/CalendarGrid';
-import { ComparisonTimeline } from '@/src/features/today/ComparisonTimeline';
-import { SingleTimeline } from '@/src/features/today/SingleTimeline';
-import useLocalization from '@/src/hooks/useLocalization';
-import { colors } from '@/src/theme/theme';
-import { ScheduleItemSchema } from '@/src/types/schemas';
-
-interface ScheduleItem {
-  id: number;
-  dateISO: string;
-  startTime: string;
-  durationMin: number;
-  title: string;
-  type: string;
-  color: { bg: string; border: string };
-  delayed?: boolean;
-  completed?: boolean;
-  current?: boolean;
-  unplanned?: boolean;
-}
+import { CalendarGrid } from '@/features/calendar/CalendarGrid';
+import { ComparisonTimeline } from '@/features/today/ComparisonTimeline';
+import { SingleTimeline } from '@/features/today/SingleTimeline';
+import useLocalization from '@/hooks/useLocalization';
+import { colors } from '@/theme/theme';
+import { ScheduleItem, ScheduleItemSchema } from '@/types/schemas';
 
 export default function CalendarScreen() {
   const [plannedSchedule, setPlannedSchedule] = useState<ScheduleItem[]>([]);

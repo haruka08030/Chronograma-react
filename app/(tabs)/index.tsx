@@ -7,28 +7,14 @@ import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-nati
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { z } from 'zod';
 
-import { Card } from '@/src/components/ui/card';
-import { Progress } from '@/src/components/ui/progress';
-import { ComparisonTimeline } from '@/src/features/today/ComparisonTimeline';
-import { ScheduleModal } from '@/src/features/today/ScheduleModal';
-import { SingleTimeline } from '@/src/features/today/SingleTimeline';
-import useLocalization from '@/src/hooks/useLocalization';
-import { colors } from '@/src/theme/theme';
-import { ScheduleItemSchema } from '@/src/types/schemas';
-
-interface ScheduleItem {
-  id: number;
-  dateISO: string;
-  startTime: string;
-  durationMin: number;
-  title: string;
-  type: string;
-  color: { bg: string; border: string };
-  delayed?: boolean;
-  completed?: boolean;
-  current?: boolean;
-  unplanned?: boolean;
-}
+import { Card } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
+import { ComparisonTimeline } from '@/features/today/ComparisonTimeline';
+import { ScheduleModal } from '@/features/today/ScheduleModal';
+import { SingleTimeline } from '@/features/today/SingleTimeline';
+import useLocalization from '@/hooks/useLocalization';
+import { colors } from '@/theme/theme';
+import { ScheduleItem, ScheduleItemSchema } from '@/types/schemas';
 
 const startMinutes = 0;
 

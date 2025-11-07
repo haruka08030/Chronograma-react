@@ -1,66 +1,80 @@
-"use client";
+import React, { createContext, useContext, useState } from 'react';
+import { View, Text, Pressable, StyleSheet } from 'react-native';
 
-import * as React from "react";
-import * as TabsPrimitive from "@radix-ui/react-tabs@1.1.3";
-
-import { cn } from "./utils";
-
-function Tabs({
-  className,
-  ...props
-}: React.ComponentProps<typeof TabsPrimitive.Root>) {
-  return (
-    <TabsPrimitive.Root
-      data-slot="tabs"
-      className={cn("flex flex-col gap-2", className)}
-      {...props}
-    />
-  );
+interface TabsContextProps {
+  activeTab: string;
+  setActiveTab: (tab: string) => void;
 }
 
-function TabsList({
-  className,
-  ...props
-}: React.ComponentProps<typeof TabsPrimitive.List>) {
-  return (
-    <TabsPrimitive.List
-      data-slot="tabs-list"
-      className={cn(
-        "bg-muted text-muted-foreground inline-flex h-9 w-fit items-center justify-center rounded-xl p-[3px] flex",
-        className,
-      )}
-      {...props}
-    />
-  );
-}
+const TabsContext = createContext<TabsContextProps | null>(null);
 
-function TabsTrigger({
-  className,
-  ...props
-}: React.ComponentProps<typeof TabsPrimitive.Trigger>) {
+const Tabs = ({ children, defaultValue }: { children: React.ReactNode, defaultValue: string }) => {
+  const [activeTab, setActiveTab] = useState(defaultValue);
   return (
-    <TabsPrimitive.Trigger
-      data-slot="tabs-trigger"
-      className={cn(
-        "data-[state=active]:bg-card dark:data-[state=active]:text-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:outline-ring dark:data-[state=active]:border-input dark:data-[state=active]:bg-input/30 text-foreground dark:text-muted-foreground inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center gap-1.5 rounded-xl border border-transparent px-2 py-1 text-sm font-medium whitespace-nowrap transition-[color,box-shadow] focus-visible:ring-[3px] focus-visible:outline-1 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
-        className,
-      )}
-      {...props}
-    />
+    <TabsContext.Provider value={{ activeTab, setActiveTab }}>
+      <View>{children}</View>
+    </TabsContext.Provider>
   );
-}
+};
 
-function TabsContent({
-  className,
-  ...props
-}: React.ComponentProps<typeof TabsPrimitive.Content>) {
+const TabsList = ({ children }: { children: React.ReactNode }) => (
+  <View style={styles.tabsList}>{children}</View>
+);
+
+const TabsTrigger = ({ value, children }: { value: string, children: React.ReactNode }) => {
+  const context = useContext(TabsContext);
+  if (!context) {
+    throw new Error('TabsTrigger must be used within Tabs');
+  }
+  const { activeTab, setActiveTab } = context;
+  const isActive = activeTab === value;
+
   return (
-    <TabsPrimitive.Content
-      data-slot="tabs-content"
-      className={cn("flex-1 outline-none", className)}
-      {...props}
-    />
+    <Pressable onPress={() => setActiveTab(value)} style={[styles.tabTrigger, isActive && styles.activeTabTrigger]}>
+      <Text style={[styles.tabTriggerText, isActive && styles.activeTabTriggerText]}>{children}</Text>
+    </Pressable>
   );
-}
+};
+
+const TabsContent = ({ value, children }: { value: string, children: React.ReactNode }) => {
+  const context = useContext(TabsContext);
+  if (!context) {
+    throw new Error('TabsContent must be used within Tabs');
+  }
+  const { activeTab } = context;
+
+  if (activeTab !== value) return null;
+
+  return <View style={styles.tabsContent}>{children}</View>;
+};
+
+const styles = StyleSheet.create({
+  tabsList: {
+    flexDirection: 'row',
+    backgroundColor: '#f0f0f0',
+    borderRadius: 8,
+    padding: 4,
+  },
+  tabTrigger: {
+    flex: 1,
+    paddingVertical: 10,
+    alignItems: 'center',
+    borderRadius: 6,
+  },
+  activeTabTrigger: {
+    backgroundColor: 'white',
+  },
+  tabTriggerText: {
+    fontSize: 16,
+    color: '#666',
+  },
+  activeTabTriggerText: {
+    color: '#333',
+    fontWeight: 'bold',
+  },
+  tabsContent: {
+    marginTop: 16,
+  },
+});
 
 export { Tabs, TabsList, TabsTrigger, TabsContent };

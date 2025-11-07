@@ -1,54 +1,56 @@
-"use client";
+import React from 'react';
+import { View, Image, Text, StyleSheet, ViewProps, ImageProps, TextProps } from 'react-native';
+import { colors } from '../../theme/theme';
 
-import * as AvatarPrimitive from "@radix-ui/react-avatar@1.1.3";
-import * as React from "react";
+interface AvatarProps extends ViewProps {}
 
-import { cn } from "./utils";
+const Avatar: React.FC<AvatarProps> = ({ style, ...props }) => {
+  return <View style={[styles.avatar, style]} {...props} />;
+};
 
-function Avatar({
-  className,
-  ...props
-}: React.ComponentProps<typeof AvatarPrimitive.Root>) {
-  return (
-    <AvatarPrimitive.Root
-      data-slot="avatar"
-      className={cn(
-        "relative flex size-10 shrink-0 overflow-hidden rounded-full",
-        className,
-      )}
-      {...props}
-    />
-  );
+interface AvatarImageProps extends ImageProps {}
+
+const AvatarImage: React.FC<AvatarImageProps> = ({ style, ...props }) => {
+  return <Image style={[styles.avatarImage, style]} {...props} />;
+};
+
+interface AvatarFallbackProps extends ViewProps {
+  children?: React.ReactNode;
 }
 
-function AvatarImage({
-  className,
-  ...props
-}: React.ComponentProps<typeof AvatarPrimitive.Image>) {
+const AvatarFallback: React.FC<AvatarFallbackProps> = ({ children, style, ...props }) => {
   return (
-    <AvatarPrimitive.Image
-      data-slot="avatar-image"
-      className={cn("aspect-square size-full", className)}
-      {...props}
-    />
+    <View style={[styles.avatarFallback, style]} {...props}>
+      <Text style={styles.avatarFallbackText}>{children}</Text>
+    </View>
   );
-}
+};
 
-function AvatarFallback({
-  className,
-  ...props
-}: React.ComponentProps<typeof AvatarPrimitive.Fallback>) {
-  return (
-    <AvatarPrimitive.Fallback
-      data-slot="avatar-fallback"
-      className={cn(
-        "bg-muted flex size-full items-center justify-center rounded-full",
-        className,
-      )}
-      {...props}
-    />
-  );
-}
+const styles = StyleSheet.create({
+  avatar: {
+    position: 'relative',
+    width: 40,
+    height: 40,
+    flexShrink: 0,
+    overflow: 'hidden',
+    borderRadius: 20,
+  },
+  avatarImage: {
+    width: '100%',
+    height: '100%',
+  },
+  avatarFallback: {
+    width: '100%',
+    height: '100%',
+    backgroundColor: colors.primaryLight,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  avatarFallbackText: {
+    color: colors.primary,
+    fontSize: 16,
+    fontWeight: '600',
+  },
+});
 
 export { Avatar, AvatarFallback, AvatarImage };
-

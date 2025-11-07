@@ -1,9 +1,9 @@
 
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import useLocalization from '@/src/hooks/useLocalization';
-import { ScheduleItem } from '@/src/types/schemas';
-import { colors } from '@/src/theme/theme';
+import useLocalization from '@/hooks/useLocalization';
+import { ScheduleItem } from '@/types/schemas';
+import { colors } from '@/theme/theme';
 
 const timelineHours = Array.from({ length: 24 }, (_, i) => i);
 

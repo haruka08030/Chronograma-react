@@ -1,7 +1,7 @@
 import { ChevronDown } from 'lucide-react-native';
 import React, { createContext, useContext, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { colors } from '@/src/theme/theme';
+import { colors } from '../../theme/theme';
 
 // Collapsible context
 const CollapsibleContext = createContext<{ isOpen: boolean; setIsOpen: (isOpen: boolean) => void; } | null>(null);

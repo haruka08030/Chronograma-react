@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const ScheduleItemSchema = z.object({
-  id: z.number(),
+  id: z.string(),
   dateISO: z.string(),
   startTime: z.string(),
   durationMin: z.number().positive(),
@@ -25,3 +25,6 @@ export const TaskSchema = z.object({
   completed: z.boolean(),
   folderId: z.string(),
 });
+
+export type ScheduleItem = z.infer<typeof ScheduleItemSchema>;
+export type Task = z.infer<typeof TaskSchema>;

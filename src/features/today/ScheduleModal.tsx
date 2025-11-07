@@ -1,10 +1,27 @@
 
+import useLocalization from '@/hooks/useLocalization';
+import { colors } from '@/theme/theme';
+import { ScheduleItem } from '@/types/schemas';
 import React from 'react';
 import { Button, Modal, Pressable, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
-import useLocalization from '@/src/hooks/useLocalization';
-import { colors } from '@/src/theme/theme';
 
-export const ScheduleModal = ({
+interface ScheduleModalProps {
+  modalVisible: boolean;
+  setModalVisible: (visible: boolean) => void;
+  selectedSchedule: ScheduleItem | null;
+  newScheduleTitle: string;
+  setNewScheduleTitle: (title: string) => void;
+  newScheduleStartTime: string;
+  setNewScheduleStartTime: (time: string) => void;
+  newScheduleDuration: string;
+  setNewScheduleDuration: (duration: string) => void;
+  isActual: boolean;
+  setIsActual: (isActual: boolean) => void;
+  handleAddScheduleItem: () => void;
+  deleteScheduleItem: (id: number) => void;
+}
+
+export const ScheduleModal: React.FC<ScheduleModalProps> = ({
   modalVisible,
   setModalVisible,
   selectedSchedule,

@@ -2,8 +2,8 @@ import { Bell, ChevronRight, LogOut, Palette, Shield, User } from 'lucide-react-
 import React, { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import useLocalization from '@/src/hooks/useLocalization';
-import { colors } from '@/src/theme/theme';
+import useLocalization from '@/hooks/useLocalization';
+import { colors } from '@/theme/theme';
 
 const Card = ({ children, style }: { children: React.ReactNode, style?: any }) => (
   <View style={[styles.card, style]}>{children}</View>

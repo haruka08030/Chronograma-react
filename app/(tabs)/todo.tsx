@@ -5,21 +5,12 @@ import React, { useEffect, useState } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { z } from 'zod';
-import { Card } from '@/src/components/ui/card';
-import { TaskItem } from '@/src/features/todo/TaskItem';
-import { TaskModal } from '@/src/features/todo/TaskModal';
-import useLocalization from '@/src/hooks/useLocalization';
-import { colors } from '@/src/theme/theme';
-import { TaskSchema } from '@/src/types/schemas';
-
-interface Task {
-  id: number;
-  title: string;
-  dueDate: string;
-  priority: 'high' | 'medium' | 'low';
-  completed: boolean;
-  folderId: string;
-}
+import { Card } from '@/components/ui/card';
+import { TaskItem } from '@/features/todo/TaskItem';
+import { TaskModal } from '@/features/todo/TaskModal';
+import useLocalization from '@/hooks/useLocalization';
+import { colors } from '@/theme/theme';
+import { Task, TaskSchema } from '@/types/schemas';
 
 interface FolderType {
   id: string;
@@ -33,7 +24,7 @@ export default function ToDoScreen() {
   const [activeFolder, setActiveFolder] = useState('all');
   const [modalVisible, setModalVisible] = useState(false);
   const [newTaskTitle, setNewTaskTitle] = useState('');
-  const [newDueDate, setNewDueDate] = useState('');
+  const [newDueDate, setNewDueDate] = useState<Date | null>(null);
   const [newPriority, setNewPriority] = useState<'high' | 'medium' | 'low'>('medium');
   const [newFolder, setNewFolder] = useState('');
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
@@ -42,12 +33,12 @@ export default function ToDoScreen() {
   useEffect(() => {
     if (selectedTask) {
       setNewTaskTitle(selectedTask.title);
-      setNewDueDate(selectedTask.dueDate);
+      setNewDueDate(new Date(selectedTask.dueDate));
       setNewPriority(selectedTask.priority);
       setNewFolder(selectedTask.folderId);
     } else {
       setNewTaskTitle('');
-      setNewDueDate('');
+      setNewDueDate(null);
       setNewPriority('medium');
       setNewFolder(activeFolder === 'all' ? 'personal' : activeFolder);
     }
@@ -69,7 +60,7 @@ export default function ToDoScreen() {
     const newTask: Task = {
       id: Date.now(),
       title: newTaskTitle,
-      dueDate: newDueDate,
+      dueDate: newDueDate ? newDueDate.toISOString() : '',
       priority: newPriority,
       completed: false,
       folderId: newFolder,
@@ -81,7 +72,7 @@ export default function ToDoScreen() {
   const updateTask = () => {
     if (!selectedTask) return;
     setTasks(tasks.map((task: Task) =>
-      task.id === selectedTask.id ? { ...task, title: newTaskTitle, dueDate: newDueDate, priority: newPriority, folderId: newFolder } : task
+      task.id === selectedTask.id ? { ...task, title: newTaskTitle, dueDate: newDueDate ? newDueDate.toISOString() : '', priority: newPriority, folderId: newFolder } : task
     ));
     setSelectedTask(null);
     setModalVisible(false);
@@ -152,7 +143,7 @@ export default function ToDoScreen() {
   const displayActiveTasks = displayTasks.filter((task: Task) => !task.completed);
   const displayCompletedTasks = displayTasks.filter((task: Task) => task.completed);
 
-  const handleSelectTask = (task) => {
+  const handleSelectTask = (task: Task) => {
     setSelectedTask(task);
     setModalVisible(true);
   }

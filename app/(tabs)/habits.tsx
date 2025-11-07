@@ -3,17 +3,17 @@ import { Plus } from 'lucide-react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { useCallback, useEffect, useState } from 'react';
 import { Alert, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
-import { colors } from '@/src/theme/theme';
+import { colors } from '@/theme/theme';
 
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Badge } from '@/src/components/ui/badge';
-import { Card } from '@/src/components/ui/card';
-import { HabitItem } from '@/src/features/habits/components/HabitItem';
-import { HabitModal } from '@/src/features/habits/components/HabitModal';
-import { getHabits, setHabits } from '@/src/features/habits/repo';
-import { Habit } from '@/src/features/habits/schema';
-import { calculateWeeklyRate, getOverallLongestStreak } from '@/src/features/habits/service';
-import useLocalization from '@/src/hooks/useLocalization';
+import { Badge } from '@/components/ui/badge';
+import { Card } from '@/components/ui/card';
+import { HabitItem } from '@/features/habits/components/HabitItem';
+import { HabitModal } from '@/features/habits/components/HabitModal';
+import { getHabits, setHabits } from '@/features/habits/repo';
+import { Habit } from '@/features/habits/schema';
+import { calculateWeeklyRate, getOverallLongestStreak } from '@/features/habits/service';
+import useLocalization from '@/hooks/useLocalization';
 
 export default function HabitsScreen() {
   const { t } = useLocalization();

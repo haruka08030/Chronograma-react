@@ -2,8 +2,8 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react-native';
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { Card } from '@/src/components/ui/card';
-import { colors } from '@/src/theme/theme';
+import { Card } from '../../components/ui/card';
+import { colors } from '../../theme/theme';
 
 export const CalendarGrid = ({
   currentMonth,

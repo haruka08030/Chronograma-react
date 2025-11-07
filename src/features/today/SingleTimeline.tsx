@@ -1,7 +1,14 @@
 
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { colors } from '@/src/theme/theme';
+import { colors } from '@/theme/theme';
+import { ScheduleItem } from '@/types/schemas';
+
+/** props 型 */
+interface SingleTimelineProps {
+  actualSchedule: ScheduleItem[];
+  onSelectSchedule: (item: ScheduleItem, isActual: boolean) => void;
+}
 
 const timelineHours = Array.from({ length: 24 }, (_, i) => i);
 
@@ -16,7 +23,7 @@ const durationToMinutes = (durationMin: number): number => {
 
 const startMinutes = 0;
 
-const calculatePosition = (item) => {
+const calculatePosition = (item: ScheduleItem) => {
   const itemMinutes = timeToMinutes(item.startTime);
   const duration = durationToMinutes(item.durationMin);
   const topPosition = ((itemMinutes - startMinutes) / 60) * 80;
@@ -24,7 +31,7 @@ const calculatePosition = (item) => {
   return { top: topPosition, height };
 };
 
-export const SingleTimeline = ({ actualSchedule, onSelectSchedule }) => {
+export const SingleTimeline: React.FC<SingleTimelineProps> = ({ actualSchedule, onSelectSchedule }) => {
   return (
     <View style={styles.timelineContainer}>
       <View style={{ height: timelineHours.length * 80 }}>
@@ -36,7 +43,7 @@ export const SingleTimeline = ({ actualSchedule, onSelectSchedule }) => {
         ))}
         <View style={[styles.scheduleItemsContainer, { left: 48, right: 0 }]}>
           <View style={{ flex: 1, position: 'relative' }}>
-            {actualSchedule.map((item, index) => {
+            {actualSchedule.map((item: ScheduleItem, index: number) => {
               const { top, height } = calculatePosition(item);
               return (
                 <Pressable key={index} onPress={() => onSelectSchedule(item, true)}>

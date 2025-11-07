@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
-import en from '@/src/i18n/en.json';
-import ja from '@/src/i18n/ja.json';
+import en from '@/i18n/en.json';
+import ja from '@/i18n/ja.json';
 
 const bundles: Record<string, any> = { en, ja };
 

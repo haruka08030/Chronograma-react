@@ -1,25 +1,18 @@
-"use client";
+import React from 'react';
+import { View, Text, StyleSheet } from 'react-native';
 
-import { useTheme } from "next-themes@0.4.6";
-import { Toaster as Sonner, ToasterProps } from "sonner@2.0.3";
+// Placeholder for Sonner component
+const Sonner = ({ children }: { children: React.ReactNode }) => (
+  <View style={styles.container}>
+    <Text>Sonner (Placeholder)</Text>
+    {children}
+  </View>
+);
 
-const Toaster = ({ ...props }: ToasterProps) => {
-  const { theme = "system" } = useTheme();
+const styles = StyleSheet.create({
+  container: {
+    // Add your styles here
+  },
+});
 
-  return (
-    <Sonner
-      theme={theme as ToasterProps["theme"]}
-      className="toaster group"
-      style={
-        {
-          "--normal-bg": "var(--popover)",
-          "--normal-text": "var(--popover-foreground)",
-          "--normal-border": "var(--border)",
-        } as React.CSSProperties
-      }
-      {...props}
-    />
-  );
-};
-
-export { Toaster };
+export { Sonner };

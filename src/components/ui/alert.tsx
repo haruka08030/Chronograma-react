@@ -1,66 +1,48 @@
-import * as React from "react";
-import { cva, type VariantProps } from "class-variance-authority@0.7.1";
+import React from 'react';
+import { View, Text, StyleSheet, ViewProps, TextProps } from 'react-native';
+import { colors } from '../../theme/theme';
 
-import { cn } from "./utils";
+interface AlertProps extends ViewProps {
+  variant?: 'default' | 'destructive';
+}
 
-const alertVariants = cva(
-  "relative w-full rounded-lg border px-4 py-3 text-sm grid has-[>svg]:grid-cols-[calc(var(--spacing)*4)_1fr] grid-cols-[0_1fr] has-[>svg]:gap-x-3 gap-y-0.5 items-start [&>svg]:size-4 [&>svg]:translate-y-0.5 [&>svg]:text-current",
-  {
-    variants: {
-      variant: {
-        default: "bg-card text-card-foreground",
-        destructive:
-          "text-destructive bg-card [&>svg]:text-current *:data-[slot=alert-description]:text-destructive/90",
-      },
-    },
-    defaultVariants: {
-      variant: "default",
-    },
+const Alert: React.FC<AlertProps> = ({ variant = 'default', ...props }) => {
+  return <View style={[styles.alert, styles[variant]]} {...props} />;
+};
+
+const AlertTitle: React.FC<TextProps> = (props) => {
+  return <Text style={styles.alertTitle} {...props} />;
+};
+
+const AlertDescription: React.FC<TextProps> = (props) => {
+  return <Text style={styles.alertDescription} {...props} />;
+};
+
+const styles = StyleSheet.create({
+  alert: {
+    position: 'relative',
+    width: '100%',
+    borderRadius: 8,
+    borderWidth: 1,
+    padding: 16,
   },
-);
-
-function Alert({
-  className,
-  variant,
-  ...props
-}: React.ComponentProps<"div"> & VariantProps<typeof alertVariants>) {
-  return (
-    <div
-      data-slot="alert"
-      role="alert"
-      className={cn(alertVariants({ variant }), className)}
-      {...props}
-    />
-  );
-}
-
-function AlertTitle({ className, ...props }: React.ComponentProps<"div">) {
-  return (
-    <div
-      data-slot="alert-title"
-      className={cn(
-        "col-start-2 line-clamp-1 min-h-4 font-medium tracking-tight",
-        className,
-      )}
-      {...props}
-    />
-  );
-}
-
-function AlertDescription({
-  className,
-  ...props
-}: React.ComponentProps<"div">) {
-  return (
-    <div
-      data-slot="alert-description"
-      className={cn(
-        "text-muted-foreground col-start-2 grid justify-items-start gap-1 text-sm [&_p]:leading-relaxed",
-        className,
-      )}
-      {...props}
-    />
-  );
-}
+  default: {
+    backgroundColor: colors.background,
+    borderColor: colors.border,
+  },
+  destructive: {
+    backgroundColor: colors.roseLight,
+    borderColor: colors.rose,
+  },
+  alertTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.text,
+  },
+  alertDescription: {
+    fontSize: 14,
+    color: colors.text,
+  },
+});
 
 export { Alert, AlertTitle, AlertDescription };

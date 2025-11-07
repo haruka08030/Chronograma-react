@@ -1,45 +1,67 @@
-"use client";
+import React, { createContext, useContext, useState } from 'react';
+import { View, Text, Pressable, StyleSheet } from 'react-native';
 
-import * as RadioGroupPrimitive from "@radix-ui/react-radio-group";
-import { CircleIcon } from "lucide-react";
-import * as React from "react";
-
-import { cn } from "./utils";
-
-function RadioGroup({
-  className,
-  ...props
-}: React.ComponentProps<typeof RadioGroupPrimitive.Root>) {
-  return (
-    <RadioGroupPrimitive.Root
-      data-slot="radio-group"
-      className={cn("grid gap-3", className)}
-      {...props}
-    />
-  );
+interface RadioGroupContextProps {
+  value: string;
+  onValueChange: (value: string) => void;
 }
 
-function RadioGroupItem({
-  className,
-  ...props
-}: React.ComponentProps<typeof RadioGroupPrimitive.Item>) {
+const RadioGroupContext = createContext<RadioGroupContextProps | null>(null);
+
+const RadioGroup = ({ children, value, onValueChange }: { children: React.ReactNode, value: string, onValueChange: (value: string) => void }) => {
   return (
-    <RadioGroupPrimitive.Item
-      data-slot="radio-group-item"
-      className={cn(
-        "border-input text-primary focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 aspect-square size-4 shrink-0 rounded-full border shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50",
-        className,
-      )}
-      {...props}
-    >
-      <RadioGroupPrimitive.Indicator
-        data-slot="radio-group-indicator"
-        className="relative flex items-center justify-center"
-      >
-        <CircleIcon className="fill-primary absolute top-1/2 left-1/2 size-2 -translate-x-1/2 -translate-y-1/2" />
-      </RadioGroupPrimitive.Indicator>
-    </RadioGroupPrimitive.Item>
+    <RadioGroupContext.Provider value={{ value, onValueChange }}>
+      <View>{children}</View>
+    </RadioGroupContext.Provider>
   );
-}
+};
+
+const RadioGroupItem = ({ value, children }: { value: string, children?: React.ReactNode }) => {
+  const context = useContext(RadioGroupContext);
+  if (!context) {
+    throw new Error('RadioGroupItem must be used within a RadioGroup');
+  }
+  const { value: selectedValue, onValueChange } = context;
+  const isSelected = selectedValue === value;
+
+  return (
+    <Pressable onPress={() => onValueChange(value)} style={styles.radioItem}>
+      <View style={[styles.radioOuter, isSelected && styles.radioOuterSelected]}>
+        {isSelected && <View style={styles.radioInner} />}
+      </View>
+      {children && <Text style={styles.radioLabel}>{children}</Text>}
+    </Pressable>
+  );
+};
+
+const styles = StyleSheet.create({
+  radioItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 8,
+  },
+  radioOuter: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: '#ccc',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 8,
+  },
+  radioOuterSelected: {
+    borderColor: 'blue',
+  },
+  radioInner: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: 'blue',
+  },
+  radioLabel: {
+    fontSize: 16,
+  },
+});
 
 export { RadioGroup, RadioGroupItem };
