@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 export const ScheduleItemSchema = z.object({
   id: z.number(),
-  dateISO: z.date(),
+  dateISO: z.date().nullable(),
   startTime: z.string(),
   durationMin: z.number().positive(),
   title: z.string(),

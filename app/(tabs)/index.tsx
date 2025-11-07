@@ -60,7 +60,11 @@ export default function TodayScreen() {
       const storedPlannedSchedule = await AsyncStorage.getItem('plannedSchedule');
       if (storedPlannedSchedule !== null) {
         const parsed = JSON.parse(storedPlannedSchedule);
-        const validated = z.array(ScheduleItemSchema).safeParse(parsed);
+        const schedulesWithDates = parsed.map((item: any) => ({
+          ...item,
+          dateISO: item.dateISO ? new Date(item.dateISO) : null,
+        }));
+        const validated = z.array(ScheduleItemSchema).safeParse(schedulesWithDates);
         if (validated.success) {
           setPlannedSchedule(validated.data);
         } else {
@@ -70,7 +74,11 @@ export default function TodayScreen() {
       const storedActualSchedule = await AsyncStorage.getItem('actualSchedule');
       if (storedActualSchedule !== null) {
         const parsed = JSON.parse(storedActualSchedule);
-        const validated = z.array(ScheduleItemSchema).safeParse(parsed);
+        const schedulesWithDates = parsed.map((item: any) => ({
+          ...item,
+          dateISO: item.dateISO ? new Date(item.dateISO) : null,
+        }));
+        const validated = z.array(ScheduleItemSchema).safeParse(schedulesWithDates);
         if (validated.success) {
           setActualSchedule(validated.data);
         } else {
