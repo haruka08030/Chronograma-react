@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 export const ScheduleItemSchema = z.object({
   id: z.number(),
-  dateISO: z.string(),
+  dateISO: z.date(),
   startTime: z.string(),
   durationMin: z.number().positive(),
   title: z.string(),
@@ -20,7 +20,7 @@ export const ScheduleItemSchema = z.object({
 export const TaskSchema = z.object({
   id: z.number(),
   title: z.string(),
-  dueDate: z.string(),
+  dueDate: z.date().nullable(),
   priority: z.enum(['high', 'medium', 'low']),
   completed: z.boolean(),
   folderId: z.string(),

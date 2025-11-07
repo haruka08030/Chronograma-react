@@ -57,16 +57,17 @@ export default function CalendarScreen() {
   const activityMap = useMemo(() => {
     const newActivityMap = new Map<string, number>();
     [...plannedSchedule, ...actualSchedule].forEach(item => {
-      const count = newActivityMap.get(item.dateISO) || 0;
-      newActivityMap.set(item.dateISO, count + 1);
+      const dateKey = item.dateISO.toISOString().split('T')[0];
+      const count = newActivityMap.get(dateKey) || 0;
+      newActivityMap.set(dateKey, count + 1);
     });
     return newActivityMap;
   }, [plannedSchedule, actualSchedule]);
 
   const { filteredPlannedSchedule, filteredActualSchedule } = useMemo(() => {
     const selectedDateString = selectedDate.toISOString().split('T')[0];
-    const filteredPlanned = plannedSchedule.filter(item => item.dateISO === selectedDateString);
-    const filteredActual = actualSchedule.filter(item => item.dateISO === selectedDateString);
+    const filteredPlanned = plannedSchedule.filter(item => item.dateISO.toISOString().split('T')[0] === selectedDateString);
+    const filteredActual = actualSchedule.filter(item => item.dateISO.toISOString().split('T')[0] === selectedDateString);
     return { filteredPlannedSchedule: filteredPlanned, filteredActualSchedule: filteredActual };
   }, [selectedDate, plannedSchedule, actualSchedule]);
 

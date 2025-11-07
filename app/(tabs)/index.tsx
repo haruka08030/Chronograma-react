@@ -104,7 +104,7 @@ export default function TodayScreen() {
     const newSchedule: ScheduleItem = {
       id: Date.now(),
       title: newScheduleTitle,
-      dateISO: newScheduleDate.toISOString().split('T')[0],
+      dateISO: newScheduleDate,
       startTime: newScheduleStartTime,
       durationMin: parseInt(newScheduleDuration, 10),
       type: 'task',

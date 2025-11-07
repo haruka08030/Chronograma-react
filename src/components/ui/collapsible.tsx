@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState } from 'react';
-import { View } from 'react-native';
+import { View, Pressable } from 'react-native';
 
 // Collapsible context
 const CollapsibleContext = createContext<{ isOpen: boolean; setIsOpen: (isOpen: boolean) => void; } | null>(null);

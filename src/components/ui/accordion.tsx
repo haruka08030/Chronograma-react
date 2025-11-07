@@ -2,11 +2,6 @@ import { ChevronDown } from 'lucide-react-native';
 import React, { createContext, useContext, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { colors } from '../../theme/theme';
-
-import { ChevronDown } from 'lucide-react-native';
-import React, { createContext, useContext, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { colors } from '../../theme/theme';
 import { CollapsibleContext } from './collapsible';
 
 // Accordion context

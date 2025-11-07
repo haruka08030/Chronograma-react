@@ -33,7 +33,7 @@ export default function ToDoScreen() {
   useEffect(() => {
     if (selectedTask) {
       setNewTaskTitle(selectedTask.title);
-      setNewDueDate(new Date(selectedTask.dueDate));
+      setNewDueDate(selectedTask.dueDate ? new Date(selectedTask.dueDate) : null);
       setNewPriority(selectedTask.priority);
       setNewFolder(selectedTask.folderId);
     } else {
@@ -60,7 +60,7 @@ export default function ToDoScreen() {
     const newTask: Task = {
       id: Date.now(),
       title: newTaskTitle,
-      dueDate: newDueDate ? newDueDate.toISOString() : '',
+      dueDate: newDueDate,
       priority: newPriority,
       completed: false,
       folderId: newFolder,
@@ -72,7 +72,7 @@ export default function ToDoScreen() {
   const updateTask = () => {
     if (!selectedTask) return;
     setTasks(tasks.map((task: Task) =>
-      task.id === selectedTask.id ? { ...task, title: newTaskTitle, dueDate: newDueDate ? newDueDate.toISOString() : '', priority: newPriority, folderId: newFolder } : task
+      task.id === selectedTask.id ? { ...task, title: newTaskTitle, dueDate: newDueDate, priority: newPriority, folderId: newFolder } : task
     ));
     setSelectedTask(null);
     setModalVisible(false);
@@ -91,7 +91,11 @@ export default function ToDoScreen() {
       const storedTasks = await AsyncStorage.getItem('tasks');
       if (storedTasks !== null) {
         const parsed = JSON.parse(storedTasks);
-        const validated = z.array(TaskSchema).safeParse(parsed);
+        const tasksWithDates = parsed.map((task: any) => ({
+          ...task,
+          dueDate: task.dueDate ? new Date(task.dueDate) : null,
+        }));
+        const validated = z.array(TaskSchema).safeParse(tasksWithDates);
         if (validated.success) {
           setTasks(validated.data);
         } else {

@@ -29,7 +29,7 @@ export const TaskItem: React.FC<TaskItemProps> = ({ task, onSelectTask, onToggle
               <Flag color="#f97316" width={12} height={12} style={{ marginRight: 4 }} />
               <Text style={styles.priorityText}>{task.priority}</Text>
             </Badge>
-            <Text style={styles.dueDateText}>{task.dueDate}</Text>
+            <Text style={styles.dueDateText}>{task.dueDate ? task.dueDate.toLocaleDateString() : ''}</Text>
           </View>
         </View>
       </View>
