@@ -1,5 +1,20 @@
-import { Stack } from "expo-router";
+import { Stack } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
+
+import { colors } from '@/theme/theme';
 
 export default function RootLayout() {
-  return <Stack screenOptions={{ headerShown: false }} />;}
-
+  return (
+    <>
+      <StatusBar style="dark" />
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          contentStyle: {
+            backgroundColor: colors.background,
+          },
+        }}
+      />
+    </>
+  );
+}
