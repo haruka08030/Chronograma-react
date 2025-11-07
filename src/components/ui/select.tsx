@@ -1,9 +1,13 @@
-import { Picker } from '@react-native-picker/picker';
+import { Picker, PickerProps } from '@react-native-picker/picker';
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
-import { colors } from '../../theme/theme';
+import { colors } from '@/theme/theme';
 
-const Select = ({ children, ...props }) => (
+interface SelectProps extends PickerProps {
+  children: React.ReactNode;
+}
+
+const Select: React.FC<SelectProps> = ({ children, ...props }) => (
   <View style={styles.container}>
     <Picker {...props}>
       {children}

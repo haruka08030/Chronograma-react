@@ -5,8 +5,15 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { colors } from '@/theme/theme';
+import { Task } from '@/types/schemas';
 
-export const TaskItem = ({ task, onSelectTask, onToggleTask }) => (
+interface TaskItemProps {
+  task: Task;
+  onSelectTask: (task: Task) => void;
+  onToggleTask: (id: number) => void;
+}
+
+export const TaskItem: React.FC<TaskItemProps> = ({ task, onSelectTask, onToggleTask }) => (
   <Pressable onPress={() => onSelectTask(task)}>
     <Card style={styles.taskItemCard}>
       <View style={styles.taskItemContainer}>

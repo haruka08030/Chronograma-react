@@ -2,10 +2,19 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react-native';
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { Card } from '../../components/ui/card';
-import { colors } from '../../theme/theme';
+import { Card } from '@/components/ui/card';
+import { colors } from '@/theme/theme';
 
-export const CalendarGrid = ({
+interface CalendarGridProps {
+  currentMonth: Date;
+  previousMonth: () => void;
+  nextMonth: () => void;
+  activityMap: Map<string, number>;
+  selectedDate: Date;
+  setSelectedDate: (date: Date) => void;
+}
+
+export const CalendarGrid: React.FC<CalendarGridProps> = ({
   currentMonth,
   previousMonth,
   nextMonth,

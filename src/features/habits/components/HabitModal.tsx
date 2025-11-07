@@ -2,10 +2,33 @@
 import { Picker } from '@react-native-picker/picker';
 import React from 'react';
 import { Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
-import useLocalization from '../../../hooks/useLocalization';
-import { colors } from '../../../theme/theme';
+import useLocalization from '@/hooks/useLocalization';
+import { colors } from '@/theme/theme';
+import { Habit } from '../schema';
 
-export const HabitModal = ({
+interface ColorOption {
+  label: string;
+  bg: string;
+  text: string;
+}
+
+interface HabitModalProps {
+  isAddDialogOpen: boolean;
+  setIsAddDialogOpen: (isOpen: boolean) => void;
+  editingHabit: Habit | null;
+  formData: {
+    name: string;
+    icon: string;
+    time: string;
+    color: { bg: string; text: string; };
+  };
+  setFormData: (data: { name: string; icon: string; time: string; color: { bg: string; text: string; }; }) => void;
+  colorOptions: ColorOption[];
+  handleAddHabit: () => void;
+  handleDelete: (id: string) => void;
+}
+
+export const HabitModal: React.FC<HabitModalProps> = ({
   isAddDialogOpen,
   setIsAddDialogOpen,
   editingHabit,
