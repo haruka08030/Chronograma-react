@@ -3,40 +3,11 @@ import React, { createContext, useContext, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { colors } from '../../theme/theme';
 
-// Collapsible context
-const CollapsibleContext = createContext<{ isOpen: boolean; setIsOpen: (isOpen: boolean) => void; } | null>(null);
-
-const useCollapsible = () => {
-  const context = useContext(CollapsibleContext);
-  if (!context) {
-    throw new Error('useCollapsible must be used within a Collapsible');
-  }
-  return context;
-};
-
-const Collapsible = ({ children, defaultOpen = false }: { children: React.ReactNode, defaultOpen?: boolean }) => {
-  const [isOpen, setIsOpen] = useState(defaultOpen);
-  return (
-    <CollapsibleContext.Provider value={{ isOpen, setIsOpen }}>
-      <View>{children}</View>
-    </CollapsibleContext.Provider>
-  );
-};
-
-const CollapsibleTrigger = ({ children }: { children: React.ReactNode }) => {
-  const { isOpen, setIsOpen } = useCollapsible();
-  return (
-    <Pressable onPress={() => setIsOpen(!isOpen)}>
-      {children}
-    </Pressable>
-  );
-};
-
-const CollapsibleContent = ({ children }: { children: React.ReactNode }) => {
-  const { isOpen } = useCollapsible();
-  if (!isOpen) return null;
-  return <View>{children}</View>;
-};
+import { ChevronDown } from 'lucide-react-native';
+import React, { createContext, useContext, useState } from 'react';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { colors } from '../../theme/theme';
+import { CollapsibleContext } from './collapsible';
 
 // Accordion context
 const AccordionContext = createContext<{ selected: string | null; setSelected: (value: string | null) => void; } | null>(null);
@@ -111,7 +82,4 @@ export {
   AccordionItem,
   AccordionTrigger,
   AccordionContent,
-  Collapsible,
-  CollapsibleTrigger,
-  CollapsibleContent,
 };
