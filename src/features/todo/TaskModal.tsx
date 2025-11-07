@@ -137,7 +137,7 @@ const styles = StyleSheet.create({
   closeButton: { fontSize: 24, color: colors.textSubtle },
   inputLabel: { fontSize: 14, color: colors.text, marginBottom: 8, marginTop: 16 },
   modalTextInput: { borderWidth: 1, borderColor: colors.inputBorder, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 10, width: '100%', fontSize: 16, color: colors.text },
-  datePickerButton: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: colors.inputBorder, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 10, gap: 8 },
+  datePickerButton: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 10, gap: 8 },
   datePickerText: { fontSize: 16, color: colors.text },
   pickerContainer: { borderWidth: 1, borderColor: colors.inputBorder, borderRadius: 8, justifyContent: 'center' },
   picker: { height: 44, width: '100%' }, // iOSでは高さの調整が必要
