@@ -2,8 +2,8 @@ import useLocalization from '@/hooks/useLocalization';
 import { colors } from '@/theme/theme';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { CalendarIcon, Clock } from 'lucide-react-native';
-import React, { useState } from 'react';
-import { ActionSheetIOS, Modal, Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import React, { useRef, useState } from 'react';
+import { Dimensions, Modal, Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 
 import { Task } from '@/types/schemas';
@@ -47,7 +47,9 @@ export const TaskModal: React.FC<TaskModalProps> = (props) => {
     setNewDueDate(base);
   };
 
-  const [showPrioritySheet, setShowPrioritySheet] = useState(false);
+  const [showPriorityMenu, setShowPriorityMenu] = useState(false);
+  const priorityAnchorRef = useRef<View>(null);
+  const [priorityAnchor, setPriorityAnchor] = useState({ x: 0, y: 0, width: 0, height: 0 });
 
   const tr = (key: string, fallback: string) => {
     const s = t(key);
@@ -59,20 +61,11 @@ export const TaskModal: React.FC<TaskModalProps> = (props) => {
     low: tr('todo.priorityLow', 'Low'),
   };
 
-  const openPriorityPicker = () => {
-    if (Platform.OS === 'ios') {
-      const options = [priorityText.high, priorityText.medium, priorityText.low, tr('common.cancel', 'Cancel')];
-      ActionSheetIOS.showActionSheetWithOptions(
-        { options, cancelButtonIndex: 3 },
-        (i) => {
-          if (i === 0) setNewPriority('high');
-          if (i === 1) setNewPriority('medium');
-          if (i === 2) setNewPriority('low');
-        }
-      );
-    } else {
-      setShowPrioritySheet(true);
-    }
+  const openPriorityMenu = () => {
+    priorityAnchorRef.current?.measureInWindow((x, y, width, height) => {
+      setPriorityAnchor({ x, y, width, height });
+      setShowPriorityMenu(true);
+    });
   };
 
   return (
@@ -174,43 +167,73 @@ export const TaskModal: React.FC<TaskModalProps> = (props) => {
             </View>
           </View>
           <Text style={styles.inputLabel}>{tr('todo.priority', 'Priority')}</Text>
-          <View style={styles.pickerContainer}>
+
+          {/* 測定用に ref を当てる。Android での測定安定化のため collapsable={false} */}
+          <View ref={priorityAnchorRef} collapsable={false} style={styles.pickerContainer}>
             <Pressable
               style={styles.datePickerButton}
-              onPress={openPriorityPicker}
+              onPress={openPriorityMenu}
               accessibilityRole="button"
               accessibilityLabel={tr('todo.selectPriority', 'Select priority')}
             >
               <Text style={styles.priorityValueText}>{priorityText[newPriority]}</Text>
             </Pressable>
           </View>
-          {Platform.OS === 'android' && (
+          {showPriorityMenu && (
             <Modal
               transparent
-              visible={showPrioritySheet}
+              visible
               animationType="fade"
-              onRequestClose={() => setShowPrioritySheet(false)}
+              onRequestClose={() => setShowPriorityMenu(false)}
             >
-              <Pressable style={styles.sheetBackdrop} onPress={() => setShowPrioritySheet(false)}>
-                <View style={styles.sheet}>
-                  {(['high', 'medium', 'low'] as Priority[]).map((p) => (
-                    <Pressable
-                      key={p}
-                      style={[styles.option, newPriority === p && styles.optionActive]}
-                      onPress={() => { setNewPriority(p); setShowPrioritySheet(false); }}
-                    >
-                      <Text style={[styles.optionText, newPriority === p && styles.optionTextActive]}>
-                        {priorityText[p]}
-                      </Text>
-                    </Pressable>
-                  ))}
-                  <Pressable style={styles.option} onPress={() => setShowPrioritySheet(false)}>
-                    <Text style={styles.optionText}>{tr('common.cancel', 'Cancel')}</Text>
-                  </Pressable>
+              {/* 背景を押したら閉じる */}
+              <Pressable style={styles.dropdownBackdrop} onPress={() => setShowPriorityMenu(false)}>
+                {/* 空Pressable内でバブリングを止めるためのラッパー */}
+                <View pointerEvents="box-none" style={{ flex: 1 }}>
+                  {(() => {
+                    const screenW = Dimensions.get('window').width;
+                    const left = Math.min(
+                      Math.max(8, priorityAnchor.x),
+                      screenW - priorityAnchor.width - 8
+                    );
+                    const top = priorityAnchor.y + priorityAnchor.height + 4;
+                    return (
+                      <View
+                        style={[
+                          styles.dropdown,
+                          { top, left, width: priorityAnchor.width },
+                        ]}
+                      >
+                        {(['high', 'medium', 'low'] as Priority[]).map((p) => (
+                          <Pressable
+                            key={p}
+                            style={[
+                              styles.dropdownOption,
+                              newPriority === p && styles.dropdownOptionActive,
+                            ]}
+                            onPress={() => {
+                              setNewPriority(p);
+                              setShowPriorityMenu(false);
+                            }}
+                          >
+                            <Text
+                              style={[
+                                styles.dropdownOptionText,
+                                newPriority === p && styles.dropdownOptionTextActive,
+                              ]}
+                            >
+                              {priorityText[p]}
+                            </Text>
+                          </Pressable>
+                        ))}
+                      </View>
+                    );
+                  })()}
                 </View>
               </Pressable>
             </Modal>
           )}
+
 
 
 
@@ -257,37 +280,28 @@ const styles = StyleSheet.create({
   rowItemSpacing: { marginRight: 16 },
   compactDateIOS: { height: 44, alignSelf: 'stretch' },
   compactTimeIOS: { height: 44, alignSelf: 'stretch' },
-  priorityRow: { flexDirection: 'row', gap: 8 },           // RNのgapが不安ならmarginで代用
-  chip: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 999,
-    borderWidth: 1,
-    borderColor: colors.inputBorder,
-    backgroundColor: 'white',
-    marginRight: 8, // gap代替（必要なら）
-  },
-  chipActive: {
-    backgroundColor: colors.primary, // アプリ配色に合わせて変更可
-    borderColor: colors.primary,
-  },
-  chipText: { color: colors.text },
-  chipTextActive: { color: 'white', fontWeight: '600' },
   priorityValueText: { fontSize: 16, color: colors.text },
 
-  sheetBackdrop: {
+  dropdownBackdrop: {
     flex: 1,
-    justifyContent: 'flex-end',
-    backgroundColor: 'rgba(0,0,0,0.3)',
+    backgroundColor: 'rgba(0,0,0,0.001)', // クリック検知用に極薄
   },
-  sheet: {
+  dropdown: {
+    position: 'absolute',
     backgroundColor: 'white',
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
-    paddingVertical: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.inputBorder,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 6,
+    overflow: 'hidden',
   },
-  option: { paddingVertical: 14, paddingHorizontal: 16 },
-  optionActive: { backgroundColor: '#EEF2FF' }, // 薄いハイライト。必要ならテーマ色に
-  optionText: { fontSize: 16, color: colors.text },
-  optionTextActive: { color: colors.primary, fontWeight: '600' },
+  dropdownOption: { paddingVertical: 12, paddingHorizontal: 12 },
+  dropdownOptionActive: { backgroundColor: '#EEF2FF' },
+  dropdownOptionText: { fontSize: 16, color: colors.text },
+  dropdownOptionTextActive: { color: colors.primary, fontWeight: '600' },
+
 });
