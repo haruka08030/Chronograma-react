@@ -77,9 +77,13 @@ export const TaskModal: React.FC<TaskModalProps> = (props) => {
           <View style={{ flexDirection: 'row', gap: 16 }}>
             <View style={{ flex: 1 }}>
               <Text style={styles.inputLabel}>{t('todo.dueDate')}</Text>
-              <Pressable style={styles.datePickerButton} onPress={() => setShowDatePicker(true)}>
+              <Pressable
+                style={styles.datePickerButton}
+                onPress={() => setShowDatePicker(true)}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                accessibilityLabel={t('todo.selectDueDate')}
+              >
                 <CalendarIcon size={18} color={colors.textSubtle} />
-                <Text style={styles.datePickerText}>{formattedDate}</Text>
               </Pressable>
             </View>
             <View style={{ flex: 1 }}>
