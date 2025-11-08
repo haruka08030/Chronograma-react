@@ -28,3 +28,4 @@ export const TaskSchema = z.object({
 
 export type ScheduleItem = z.infer<typeof ScheduleItemSchema>;
 export type Task = z.infer<typeof TaskSchema>;
+export type Priority = z.infer<typeof TaskSchema.shape.priority>;
