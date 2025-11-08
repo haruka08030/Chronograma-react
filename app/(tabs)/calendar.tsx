@@ -32,7 +32,11 @@ export default function CalendarScreen() {
       const storedPlannedSchedule = await AsyncStorage.getItem('plannedSchedule');
       if (storedPlannedSchedule !== null) {
         const parsed = JSON.parse(storedPlannedSchedule);
-        const validated = z.array(ScheduleItemSchema).safeParse(parsed);
+        const schedulesWithDates = parsed.map((item: any) => ({
+          ...item,
+          dateISO: item.dateISO ? new Date(item.dateISO) : null,
+        }));
+        const validated = z.array(ScheduleItemSchema).safeParse(schedulesWithDates);
         if (validated.success) {
           setPlannedSchedule(validated.data);
         } else {
@@ -42,7 +46,11 @@ export default function CalendarScreen() {
       const storedActualSchedule = await AsyncStorage.getItem('actualSchedule');
       if (storedActualSchedule !== null) {
         const parsed = JSON.parse(storedActualSchedule);
-        const validated = z.array(ScheduleItemSchema).safeParse(parsed);
+        const schedulesWithDates = parsed.map((item: any) => ({
+          ...item,
+          dateISO: item.dateISO ? new Date(item.dateISO) : null,
+        }));
+        const validated = z.array(ScheduleItemSchema).safeParse(schedulesWithDates);
         if (validated.success) {
           setActualSchedule(validated.data);
         } else {
@@ -57,16 +65,17 @@ export default function CalendarScreen() {
   const activityMap = useMemo(() => {
     const newActivityMap = new Map<string, number>();
     [...plannedSchedule, ...actualSchedule].forEach(item => {
-      const count = newActivityMap.get(item.dateISO) || 0;
-      newActivityMap.set(item.dateISO, count + 1);
+      const dateKey = item.dateISO ? item.dateISO.toISOString().split('T')[0] : '';
+      const count = newActivityMap.get(dateKey) || 0;
+      newActivityMap.set(dateKey, count + 1);
     });
     return newActivityMap;
   }, [plannedSchedule, actualSchedule]);
 
   const { filteredPlannedSchedule, filteredActualSchedule } = useMemo(() => {
     const selectedDateString = selectedDate.toISOString().split('T')[0];
-    const filteredPlanned = plannedSchedule.filter(item => item.dateISO === selectedDateString);
-    const filteredActual = actualSchedule.filter(item => item.dateISO === selectedDateString);
+    const filteredPlanned = plannedSchedule.filter(item => (item.dateISO ? item.dateISO.toISOString().split('T')[0] : '') === selectedDateString);
+    const filteredActual = actualSchedule.filter(item => (item.dateISO ? item.dateISO.toISOString().split('T')[0] : '') === selectedDateString);
     return { filteredPlannedSchedule: filteredPlanned, filteredActualSchedule: filteredActual };
   }, [selectedDate, plannedSchedule, actualSchedule]);
 

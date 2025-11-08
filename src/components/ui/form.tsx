@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, ViewProps, TextProps } from 'react-native';
 import { useForm, FormProvider, useFormContext, Controller, Control, FieldValues, FieldPath } from 'react-hook-form';
-import { colors } from '../../theme/theme';
+import { colors } from '@/theme/theme';
 
 const Form = FormProvider;
 
@@ -14,7 +14,7 @@ const FormLabel: React.FC<TextProps> = (props) => {
 };
 
 const FormControl: React.FC<{ name: string; control: Control<FieldValues>; children: React.ReactElement }> = ({ name, control, children }) => {
-  return <Controller name={name} control={control} render={({ field }) => React.cloneElement(children, { ...field, ...children.props })} />;
+  return <Controller name={name} control={control} render={({ field }) => React.cloneElement(children, field)} />;
 };
 
 const FormDescription: React.FC<TextProps> = (props) => {

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Switch as RNSwitch, SwitchProps } from 'react-native';
-import { colors } from '@/src/theme/theme';
+import { colors } from '@/theme/theme';
 
 const Switch: React.FC<SwitchProps> = (props) => {
   return (

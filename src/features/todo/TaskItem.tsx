@@ -5,8 +5,15 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { colors } from '@/theme/theme';
+import { Task } from '@/types/schemas';
 
-export const TaskItem = ({ task, onSelectTask, onToggleTask }) => (
+interface TaskItemProps {
+  task: Task;
+  onSelectTask: (task: Task) => void;
+  onToggleTask: (id: number) => void;
+}
+
+export const TaskItem: React.FC<TaskItemProps> = ({ task, onSelectTask, onToggleTask }) => (
   <Pressable onPress={() => onSelectTask(task)}>
     <Card style={styles.taskItemCard}>
       <View style={styles.taskItemContainer}>
@@ -22,7 +29,7 @@ export const TaskItem = ({ task, onSelectTask, onToggleTask }) => (
               <Flag color="#f97316" width={12} height={12} style={{ marginRight: 4 }} />
               <Text style={styles.priorityText}>{task.priority}</Text>
             </Badge>
-            <Text style={styles.dueDateText}>{task.dueDate}</Text>
+            <Text style={styles.dueDateText}>{task.dueDate ? task.dueDate.toLocaleDateString() : ''}</Text>
           </View>
         </View>
       </View>

@@ -60,7 +60,11 @@ export default function TodayScreen() {
       const storedPlannedSchedule = await AsyncStorage.getItem('plannedSchedule');
       if (storedPlannedSchedule !== null) {
         const parsed = JSON.parse(storedPlannedSchedule);
-        const validated = z.array(ScheduleItemSchema).safeParse(parsed);
+        const schedulesWithDates = parsed.map((item: any) => ({
+          ...item,
+          dateISO: item.dateISO ? new Date(item.dateISO) : null,
+        }));
+        const validated = z.array(ScheduleItemSchema).safeParse(schedulesWithDates);
         if (validated.success) {
           setPlannedSchedule(validated.data);
         } else {
@@ -70,7 +74,11 @@ export default function TodayScreen() {
       const storedActualSchedule = await AsyncStorage.getItem('actualSchedule');
       if (storedActualSchedule !== null) {
         const parsed = JSON.parse(storedActualSchedule);
-        const validated = z.array(ScheduleItemSchema).safeParse(parsed);
+        const schedulesWithDates = parsed.map((item: any) => ({
+          ...item,
+          dateISO: item.dateISO ? new Date(item.dateISO) : null,
+        }));
+        const validated = z.array(ScheduleItemSchema).safeParse(schedulesWithDates);
         if (validated.success) {
           setActualSchedule(validated.data);
         } else {
@@ -104,7 +112,7 @@ export default function TodayScreen() {
     const newSchedule: ScheduleItem = {
       id: Date.now(),
       title: newScheduleTitle,
-      dateISO: newScheduleDate.toISOString().split('T')[0],
+      dateISO: newScheduleDate,
       startTime: newScheduleStartTime,
       durationMin: parseInt(newScheduleDuration, 10),
       type: 'task',
@@ -270,7 +278,7 @@ const styles = StyleSheet.create({
   card: { backgroundColor: 'white', borderRadius: 8, padding: 16, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.20, shadowRadius: 1.41, elevation: 2 },
   progressContainer: { height: 8, backgroundColor: colors.border, borderRadius: 4 },
   progressBar: { height: 8, backgroundColor: colors.primary, borderRadius: 4 },
-  fab: { position: 'absolute', bottom: 60, right: 24, width: 56, height: 56, borderRadius: 28, backgroundColor: colors.primary, justifyContent: 'center', alignItems: 'center', elevation: 8 },
+  fab: { position: 'absolute', bottom: 100, right: 24, width: 56, height: 56, borderRadius: 28, backgroundColor: colors.primary, justifyContent: 'center', alignItems: 'center', elevation: 8 },
   modalContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)' },
   modalView: { backgroundColor: 'white', borderRadius: 12, padding: 24, alignItems: 'center', width: '80%' },
   modalTextInput: { borderWidth: 1, borderColor: colors.inputBorder, borderRadius: 8, padding: 12, marginBottom: 16, width: '100%' },

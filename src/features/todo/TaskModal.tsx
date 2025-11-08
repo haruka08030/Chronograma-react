@@ -1,14 +1,12 @@
+import { Dropdown } from '@/components/ui/Dropdown';
 import useLocalization from '@/hooks/useLocalization';
 import { colors } from '@/theme/theme';
-import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
-import { Picker } from '@react-native-picker/picker';
-import { CalendarIcon } from 'lucide-react-native';
-import React, { useMemo, useState } from 'react';
-import { Button, Modal, Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Priority, Task } from '@/types/schemas';
+import React from 'react';
+import { Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
-import { Task } from '@/types/schemas';
-
-type Priority = 'high' | 'medium' | 'low';
+import { DatePicker } from '@/components/ui/DatePicker';
+import { TimePicker } from '@/components/ui/TimePicker';
 
 interface TaskModalProps {
   modalVisible: boolean;
@@ -34,21 +32,19 @@ interface TaskModalProps {
 
 export const TaskModal: React.FC<TaskModalProps> = (props) => {
   const { t } = useLocalization();
-  const [showDatePicker, setShowDatePicker] = useState(false);
 
   const { modalVisible, setModalVisible, selectedTask, newTaskTitle, setNewTaskTitle, newDueDate, setNewDueDate, newPriority, setNewPriority, newFolder, setNewFolder, handleAddTask, deleteTask } = props;
 
-  const formattedDate = useMemo(() => {
-    if (!newDueDate) return t('todo.setDueDate');
-    return newDueDate.toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' });
-  }, [newDueDate, t]);
-
-  const onChangeDate = (_event: DateTimePickerEvent, date?: Date) => {
-    setShowDatePicker(Platform.OS === 'ios');
-    if (date) {
-      setNewDueDate(date);
-    }
+  const tr = (key: string, fallback: string) => {
+    const s = t(key);
+    return !s || s === key ? fallback : s;
   };
+
+  const priorityOptions: { label: string; value: Priority }[] = [
+    { label: tr('todo.priorityHigh', 'High'), value: 'high' },
+    { label: tr('todo.priorityMedium', 'Medium'), value: 'medium' },
+    { label: tr('todo.priorityLow', 'Low'), value: 'low' },
+  ];
 
   return (
     <Modal
@@ -74,38 +70,23 @@ export const TaskModal: React.FC<TaskModalProps> = (props) => {
             onChangeText={setNewTaskTitle}
           />
 
-          <View style={{ flexDirection: 'row', gap: 16 }}>
-            <View style={{ flex: 1 }}>
+          <View style={styles.row}>
+            <View style={[styles.rowItem, styles.rowItemSpacing]}>
               <Text style={styles.inputLabel}>{t('todo.dueDate')}</Text>
-              <Pressable style={styles.datePickerButton} onPress={() => setShowDatePicker(true)}>
-                <CalendarIcon size={18} color={colors.textSubtle} />
-                <Text style={styles.datePickerText}>{formattedDate}</Text>
-              </Pressable>
+              <DatePicker value={newDueDate || new Date()} onChange={setNewDueDate} />
             </View>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.inputLabel}>{t('todo.priority')}</Text>
-              <View style={styles.pickerContainer}>
-                <Picker
-                  selectedValue={newPriority}
-                  onValueChange={(itemValue) => setNewPriority(itemValue as Priority)}
-                  style={styles.picker}
-                >
-                  <Picker.Item label={t('todo.priorityHigh')} value="high" />
-                  <Picker.Item label={t('todo.priorityMedium')} value="medium" />
-                  <Picker.Item label={t('todo.priorityLow')} value="low" />
-                </Picker>
-              </View>
+            <View style={styles.rowItem}>
+              <Text style={styles.inputLabel}>{t('todo.dueTime') ?? 'Time'}</Text>
+              <TimePicker value={newDueDate || new Date()} onChange={setNewDueDate} />
             </View>
           </View>
-
-          {showDatePicker && (
-            <DateTimePicker
-              value={newDueDate || new Date()}
-              mode="date"
-              display="default"
-              onChange={onChangeDate}
-            />
-          )}
+          <Text style={styles.inputLabel}>{tr('todo.priority', 'Priority')}</Text>
+          <Dropdown
+            options={priorityOptions}
+            value={newPriority}
+            onChange={setNewPriority}
+            placeholder={tr('todo.selectPriority', 'Select priority')}
+          />
 
           <Text style={styles.inputLabel}>{t('todo.folder')}</Text>
           <TextInput
@@ -125,7 +106,7 @@ export const TaskModal: React.FC<TaskModalProps> = (props) => {
           }
         </Pressable>
       </Pressable>
-    </Modal>
+    </Modal >
   );
 };
 
@@ -137,11 +118,10 @@ const styles = StyleSheet.create({
   closeButton: { fontSize: 24, color: colors.textSubtle },
   inputLabel: { fontSize: 14, color: colors.text, marginBottom: 8, marginTop: 16 },
   modalTextInput: { borderWidth: 1, borderColor: colors.inputBorder, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 10, width: '100%', fontSize: 16, color: colors.text },
-  datePickerButton: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: colors.inputBorder, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 10, gap: 8 },
-  datePickerText: { fontSize: 16, color: colors.text },
-  pickerContainer: { borderWidth: 1, borderColor: colors.inputBorder, borderRadius: 8, justifyContent: 'center' },
-  picker: { height: 44, width: '100%' }, // iOSでは高さの調整が必要
   primaryButton: { backgroundColor: colors.primary, padding: 14, borderRadius: 8, marginTop: 24, width: '100%', alignItems: 'center' },
   primaryButtonText: { color: 'white', fontSize: 16, fontWeight: 'bold' },
   deleteButton: { backgroundColor: colors.rose, marginTop: 12 },
+  row: { flexDirection: 'row', alignItems: 'flex-start' },
+  rowItem: { flex: 1 },
+  rowItemSpacing: { marginRight: 16 },
 });
